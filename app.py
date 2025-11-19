@@ -15,9 +15,8 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     try:
-        # Load data
+        # FIXED PATHS (No "data/" folder)
         df = pd.read_csv("perfumes_cleaned.csv")
-        # Load AI Model (Matrix)
         cosine_sim = np.load("hybrid_similarity.npy")
         return df, cosine_sim
     except FileNotFoundError:
@@ -25,7 +24,6 @@ def load_data():
 
 # --- 3. HELPER FUNCTIONS ---
 def get_initials(name):
-    """Creates elegant 2-letter monogram from perfume name."""
     if not isinstance(name, str): return "SC"
     clean = re.sub(r"[^a-zA-Z0-9 ]", "", name)
     words = clean.split()
@@ -34,12 +32,11 @@ def get_initials(name):
     return clean[:2].upper()
 
 def clean_text(text):
-    """Cleans up the notes text removing brackets."""
     if pd.isna(text): return "Classic Blend"
     text = str(text).replace("[", "").replace("]", "").replace("'", "").replace('"', "")
     return text
 
-# --- 4. CSS STYLING (DARK LUXURY THEME) ---
+# --- 4. CSS STYLING ---
 def load_custom_css():
     st.markdown("""
         <style>
@@ -57,9 +54,7 @@ def load_custom_css():
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
         
         /* HIDE HEADER */
-        header, [data-testid="stHeader"] {
-            background-color: transparent !important;
-        }
+        header, [data-testid="stHeader"] { background-color: transparent !important; }
 
         /* TITLE FRAME */
         .title-frame {
@@ -71,7 +66,7 @@ def load_custom_css():
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
 
-        /* DROPDOWN STYLING (Selectbox) */
+        /* DROPDOWN STYLING */
         div[data-baseweb="select"] > div {
             background-color: #111 !important;
             border-color: #333 !important;
@@ -81,43 +76,28 @@ def load_custom_css():
             background-color: #0E0E0E !important;
             border: 1px solid #D4AF37 !important;
         }
-        li[role="option"] {
-            color: #EEE !important;
-        }
+        li[role="option"] { color: #EEE !important; }
         li[role="option"]:hover, li[role="option"][aria-selected="true"] {
             background-color: #D4AF37 !important;
             color: #000 !important;
             font-weight: bold;
-        }
-
-        /* GOLD CARD */
-        .reco-card {
-            background-color: #121212;
-            border-left: 4px solid #D4AF37;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: transform 0.3s;
         }
         
         hr { border-color: #333; margin: 2em 0; }
         </style>
     """, unsafe_allow_html=True)
 
-# --- 5. RENDER CARD FUNCTION ---
+# --- 5. RENDER CARD ---
 def render_recommendation(row, rank):
     initials = get_initials(row['Name'])
     brand = row['Brand'] if 'Brand' in row else "Unknown Brand"
     notes = clean_text(row['Notes']) if 'Notes' in row else "Fragrance notes unavailable"
-    
-    # Truncate notes if too long
     if len(notes) > 120: notes = notes[:120] + "..."
 
     with st.container():
         col1, col2 = st.columns([1, 5])
         
         with col1:
-            # GOLD MONOGRAM SEAL
             st.markdown(f"""
             <div style="
                 width: 60px; height: 60px; 
@@ -134,7 +114,6 @@ def render_recommendation(row, rank):
             """, unsafe_allow_html=True)
         
         with col2:
-            # CARD CONTENT
             st.markdown(f"""
             <div style="margin-left: 10px;">
                 <div style="font-size: 10px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase;">
@@ -154,22 +133,21 @@ def render_recommendation(row, rank):
         
         st.markdown("<div style='height: 1px; background: #222; margin-top: 15px; margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 
-# --- 6. MAIN LOGIC ---
+# --- 6. LOGIC ---
 def get_recommendations(perfume_name, df, cosine_sim, indices):
     try:
         idx = indices[perfume_name]
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1:6]  # Top 5 Recommendations
+        sim_scores = sim_scores[1:6]
         perfume_indices = [i[0] for i in sim_scores]
         return df.iloc[perfume_indices]
     except KeyError:
         return pd.DataFrame()
 
-# --- 7. UI EXECUTION ---
+# --- 7. APP EXECUTION ---
 load_custom_css()
 
-# Header
 st.markdown("""
 <div class="title-frame">
     <h1 style='margin-bottom: 5px; font-size: 42px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
@@ -179,14 +157,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Load Data
 df, cosine_sim = load_data()
 
 if df is not None and cosine_sim is not None:
     indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
     sorted_perfume_names = sorted(df['Name'].unique())
     
-    # INPUT SECTION (Central Hero)
     st.markdown("<div style='text-align:center; margin-bottom:10px; color:#D4AF37; font-size:12px; letter-spacing:1px;'>SELECT A PERFUME YOU LOVE:</div>", unsafe_allow_html=True)
     
     selected_perfume = st.selectbox(
@@ -197,9 +173,8 @@ if df is not None and cosine_sim is not None:
         label_visibility="collapsed"
     )
     
-    st.write("") # Spacer
+    st.write("") 
 
-    # RESULTS SECTION
     if selected_perfume:
         st.markdown(f"<center style='color:#666; font-size:12px; margin: 30px 0;'>BECAUSE YOU LIKED <b style='color:#D4AF37'>{selected_perfume}</b>, WE SUGGEST:</center>", unsafe_allow_html=True)
         
@@ -215,4 +190,4 @@ if df is not None and cosine_sim is not None:
         else:
             st.warning("No recommendations found.")
 else:
-    st.error("CRITICAL ERROR: Data files not found. Please ensure 'perfumes_cleaned.csv' and 'hybrid_similarity.npy' are in the folder.")
+    st.error("CRITICAL ERROR: Data files missing. Please ensure 'perfumes_cleaned.csv' and 'hybrid_similarity.npy' are in the folder.")
