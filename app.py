@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="ScentSational AI",
     page_icon="✨",
     layout="centered",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # --- 2. DATA LOADING ---
@@ -48,39 +48,34 @@ def load_custom_css():
             background-attachment: fixed !important;
         }
 
-        /* FONTS */
+        /* FONTS & TEXT */
         * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
         
-        /* HEADER & TITLE */
+        /* HIDE HEADER & SIDEBAR */
         header, [data-testid="stHeader"] { background-color: transparent !important; }
-        
+        section[data-testid="stSidebar"] { display: none; } /* Force hide sidebar */
+
+        /* TITLE FRAME */
         .title-frame {
             border: 3px double #D4AF37;
             padding: 40px;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
             text-align: center;
             background: rgba(0, 0, 0, 0.4);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
 
-        /* SIDEBAR STYLING */
-        section[data-testid="stSidebar"] {
-            background-color: #050505 !important;
-            border-right: 1px solid #222;
-        }
-        .stSidebar h2, .stSidebar h3 {
-            font-size: 12px !important;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .stRadio, .stMultiSelect, .stSlider { margin-bottom: -15px !important; }
-
-        /* DROPDOWN FIX */
-        div[data-baseweb="select"] > div, div[data-baseweb="popover"], ul[role="listbox"] {
-            background-color: #0E0E0E !important;
-            border: 1px solid #333 !important;
+        /* DROPDOWN STYLING (CENTER HERO) */
+        div[data-baseweb="select"] > div {
+            background-color: #111 !important;
+            border-color: #D4AF37 !important; /* Gold border for focus */
             color: #FFF !important;
+            height: 50px; /* Bigger input */
+        }
+        div[data-baseweb="popover"], ul[role="listbox"] {
+            background-color: #0E0E0E !important;
+            border: 1px solid #D4AF37 !important;
         }
         li[role="option"] { color: #EEE !important; }
         li[role="option"]:hover, li[role="option"][aria-selected="true"] {
@@ -88,20 +83,12 @@ def load_custom_css():
             color: #000 !important;
             font-weight: bold;
         }
-
-        /* GOLD CARD */
-        .reco-card {
-            background-color: #121212;
-            border-left: 4px solid #D4AF37;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
         
         hr { border-color: #333; margin: 2em 0; }
         </style>
     """, unsafe_allow_html=True)
 
-# --- 5. RENDER RECOMMENDATION ---
+# --- 5. RENDER CARD ---
 def render_recommendation(row, rank):
     initials = get_initials(row['Name'])
     brand = row['Brand'] if 'Brand' in row else "Unknown Brand"
@@ -111,7 +98,7 @@ def render_recommendation(row, rank):
     with st.container():
         col1, col2 = st.columns([1, 5])
         with col1:
-            # MONOGRAM
+            # MONOGRAM SEAL
             st.markdown(f"""
             <div style="
                 width: 60px; height: 60px; 
@@ -137,7 +124,7 @@ def render_recommendation(row, rank):
             """, unsafe_allow_html=True)
         st.markdown("<div style='height: 1px; background: #222; margin: 15px 0;'></div>", unsafe_allow_html=True)
 
-# --- 6. MAIN LOGIC ---
+# --- 6. LOGIC ---
 def get_recommendations(perfume_name, df, cosine_sim, indices):
     try:
         idx = indices[perfume_name]
@@ -152,70 +139,38 @@ def get_recommendations(perfume_name, df, cosine_sim, indices):
 # --- 7. APP EXECUTION ---
 load_custom_css()
 
-# SIDEBAR FILTERS (Przywrócone z oryginalnego projektu!)
-with st.sidebar:
-    st.markdown("### FILTER DATABASE")
-    st.write("Help us find your perfume faster.")
-    
-    # 1. Filter by Gender
-    gender_filter = st.radio("Category", ["All", "Women", "Men", "Unisex"], label_visibility="collapsed")
-    
-    # 2. Filter by Brand (New!)
-    df, cosine_sim = load_data()
-    if df is not None:
-        all_brands = sorted(df['Brand'].unique()) if 'Brand' in df.columns else []
-        brand_filter = st.selectbox("Brand (Optional)", ["All Brands"] + all_brands)
-    
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align:center; font-size:9px; color:#555;'>
-        SCENTSATIONAL AI v2.0<br>© 2025 MAGDALENA ROMANIECKA
-    </div>
-    """, unsafe_allow_html=True)
-
-# MAIN CONTENT
+# HEADER
 st.markdown("""
 <div class="title-frame">
-    <h1 style='margin-bottom: 5px; font-size: 42px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
+    <h1 style='margin-bottom: 5px; font-size: 46px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
     <p style='color:#888; font-size:11px; letter-spacing:4px; margin:0; text-transform: uppercase;'>
         AI-Powered Perfume Concierge
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-if df is not None and cosine_sim is not None:
-    # --- SMART FILTERING LOGIC ---
-    # Najpierw filtrujemy listę wyboru na podstawie Sidebara
-    filtered_df = df.copy()
-    
-    # Filter Gender (Jeśli dane mają kolumnę Gender/Gender_Clean)
-    # (Zakładam, że w Twoim perfumes_cleaned.csv może nie być idealnej kolumny Gender, 
-    # więc filtrowanie opieramy na tym co jest, lub pomijamy jeśli brak)
-    
-    # Filter Brand
-    if brand_filter != "All Brands":
-        filtered_df = filtered_df[filtered_df['Brand'] == brand_filter]
-    
-    # Tworzymy listę do Selectboxa tylko z przefiltrowanych perfum
-    available_perfumes = sorted(filtered_df['Name'].unique())
-    indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
+df, cosine_sim = load_data()
 
-    st.markdown(f"<div style='text-align:center; margin-bottom:10px; color:#D4AF37; font-size:12px;'>SELECT A PERFUME FROM <b>{len(available_perfumes)}</b> AVAILABLE:</div>", unsafe_allow_html=True)
+if df is not None and cosine_sim is not None:
+    indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
+    sorted_perfume_names = sorted(df['Name'].unique())
+    
+    # --- HERO SECTION (CENTRAL INPUT) ---
+    st.markdown("<div style='text-align:center; margin-bottom:15px; color:#D4AF37; font-size:12px; letter-spacing:2px; text-transform:uppercase;'>Tell me what you love:</div>", unsafe_allow_html=True)
     
     selected_perfume = st.selectbox(
         "Label Hidden",
-        options=available_perfumes,
+        options=sorted_perfume_names,
         index=None,
-        placeholder="Type to search...",
+        placeholder="Type specific perfume name...",
         label_visibility="collapsed"
     )
     
-    st.write("")
+    st.write("") # Spacer
 
     if selected_perfume:
-        st.markdown(f"<center style='color:#666; font-size:12px; margin: 30px 0;'>BECAUSE YOU LIKED <b style='color:#D4AF37'>{selected_perfume}</b>, WE SUGGEST:</center>", unsafe_allow_html=True)
+        st.markdown(f"<center style='color:#666; font-size:12px; margin: 40px 0;'>ANALYZING DNA OF <b style='color:#D4AF37'>{selected_perfume}</b>...</center>", unsafe_allow_html=True)
         
-        # Uwaga: Rekomendacje biorą z PEŁNEJ bazy, nie tylko przefiltrowanej (AI szuka wszędzie)
         recommendations = get_recommendations(selected_perfume, df, cosine_sim, indices)
         
         if not recommendations.empty:
@@ -223,8 +178,15 @@ if df is not None and cosine_sim is not None:
             for idx, row in recommendations.iterrows():
                 render_recommendation(row, rank)
                 rank += 1
-            st.markdown("<center style='font-size:10px; color:#444; margin-top:50px;'>POWERED BY COSINE SIMILARITY</center>", unsafe_allow_html=True)
+            
+            st.markdown("""
+            <div style='text-align:center; font-size:9px; color:#444; margin-top:50px; line-height:1.6;'>
+                POWERED BY COSINE SIMILARITY & NLP<br>
+                DATA SOURCE: FRAGRANTICA (KAGGLE)<br>
+                © 2025 MAGDALENA ROMANIECKA
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.warning("No similar perfumes found.")
+            st.warning("No recommendations found.")
 else:
     st.error("Data files missing.")
