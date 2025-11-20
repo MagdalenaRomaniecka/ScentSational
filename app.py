@@ -48,40 +48,55 @@ def load_custom_css():
             background-attachment: fixed !important;
         }
 
-        /* FONTS & TEXT */
-        * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
-        h1, h2, h3 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
-        
-        /* HIDE HEADER & SIDEBAR */
+        /* HIDE HEADER/SIDEBAR */
         header, [data-testid="stHeader"] { background-color: transparent !important; }
-        section[data-testid="stSidebar"] { display: none; } /* Force hide sidebar */
+        section[data-testid="stSidebar"] { display: none; }
 
         /* TITLE FRAME */
         .title-frame {
             border: 3px double #D4AF37;
             padding: 40px;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             text-align: center;
             background: rgba(0, 0, 0, 0.4);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
+        
+        /* FONTS */
+        * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
+        h1 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
 
-        /* DROPDOWN STYLING (CENTER HERO) */
+        /* DROPDOWN FIX */
         div[data-baseweb="select"] > div {
             background-color: #111 !important;
-            border-color: #D4AF37 !important; /* Gold border for focus */
+            border-color: #333 !important;
             color: #FFF !important;
-            height: 50px; /* Bigger input */
         }
-        div[data-baseweb="popover"], ul[role="listbox"] {
+        div[data-baseweb="popover"], ul[role="listbox"], div[data-baseweb="menu"] {
             background-color: #0E0E0E !important;
             border: 1px solid #D4AF37 !important;
         }
-        li[role="option"] { color: #EEE !important; }
+        li[role="option"] {
+            color: #CCC !important;
+            background-color: #0E0E0E !important;
+        }
         li[role="option"]:hover, li[role="option"][aria-selected="true"] {
             background-color: #D4AF37 !important;
             color: #000 !important;
-            font-weight: bold;
+            font-weight: bold !important;
+        }
+        div[data-baseweb="select"] span {
+            color: #FFF !important;
+        }
+
+        /* LABELS STYLE */
+        .soft-label {
+            font-size: 10px;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-family: 'Montserrat', sans-serif;
         }
         
         hr { border-color: #333; margin: 2em 0; }
@@ -93,12 +108,11 @@ def render_recommendation(row, rank):
     initials = get_initials(row['Name'])
     brand = row['Brand'] if 'Brand' in row else "Unknown Brand"
     notes = clean_text(row['Notes']) if 'Notes' in row else "N/A"
-    if len(notes) > 100: notes = notes[:100] + "..."
+    if len(notes) > 120: notes = notes[:120] + "..."
 
     with st.container():
         col1, col2 = st.columns([1, 5])
         with col1:
-            # MONOGRAM SEAL
             st.markdown(f"""
             <div style="
                 width: 60px; height: 60px; 
@@ -116,10 +130,10 @@ def render_recommendation(row, rank):
         with col2:
             st.markdown(f"""
             <div style="margin-left: 10px;">
-                <div style="font-size: 10px; color: #D4AF37; letter-spacing: 2px;">#{rank} RECOMMENDED</div>
+                <div style="font-size: 10px; color: #D4AF37; letter-spacing: 2px;">NO. {rank}</div>
                 <div style="font-family: 'Playfair Display'; font-size: 20px; color: #FFF;">{row['Name']}</div>
                 <div style="font-size: 12px; color: #888; font-style: italic; margin-bottom: 5px;">{brand}</div>
-                <div style="font-size: 10px; color: #AAA;"><span style="color: #D4AF37;">NOTES:</span> {notes}</div>
+                <div style="font-size: 10px; color: #AAA;"><span style="color: #D4AF37;">ACCORDS:</span> {notes}</div>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("<div style='height: 1px; background: #222; margin: 15px 0;'></div>", unsafe_allow_html=True)
@@ -139,12 +153,11 @@ def get_recommendations(perfume_name, df, cosine_sim, indices):
 # --- 7. APP EXECUTION ---
 load_custom_css()
 
-# HEADER
 st.markdown("""
 <div class="title-frame">
-    <h1 style='margin-bottom: 5px; font-size: 46px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
+    <h1 style='margin-bottom: 5px; font-size: 42px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
     <p style='color:#888; font-size:11px; letter-spacing:4px; margin:0; text-transform: uppercase;'>
-        AI-Powered Perfume Concierge
+        Personal Fragrance Curator
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -153,23 +166,50 @@ df, cosine_sim = load_data()
 
 if df is not None and cosine_sim is not None:
     indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
-    sorted_perfume_names = sorted(df['Name'].unique())
     
-    # --- HERO SECTION (CENTRAL INPUT) ---
-    st.markdown("<div style='text-align:center; margin-bottom:15px; color:#D4AF37; font-size:12px; letter-spacing:2px; text-transform:uppercase;'>Tell me what you love:</div>", unsafe_allow_html=True)
+    # --- ELEGANT SELECTION FLOW ---
     
+    all_brands = sorted(df['Brand'].unique()) if 'Brand' in df.columns else []
+    
+    # Row 1: Refine
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown('<p class="soft-label">NARROW DOWN BY HOUSE (OPTIONAL)</p>', unsafe_allow_html=True)
+        selected_brand = st.selectbox("Brand", ["View All Houses"] + all_brands, label_visibility="collapsed")
+
+    with col_b:
+        st.markdown('<p class="soft-label">PREFERRED STYLE</p>', unsafe_allow_html=True)
+        selected_gender = st.selectbox("Gender", ["All Collections", "Women", "Men", "Unisex"], label_visibility="collapsed")
+
+    # Logic
+    filtered_df = df.copy()
+    if selected_brand != "View All Houses":
+        filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
+    
+    if 'Gender' in filtered_df.columns and selected_gender != "All Collections":
+        if selected_gender == "Women": filtered_df = filtered_df[filtered_df['Gender'].str.contains("women", case=False, na=False)]
+        elif selected_gender == "Men": filtered_df = filtered_df[filtered_df['Gender'].str.contains("men", case=False, na=False)]
+        elif selected_gender == "Unisex": filtered_df = filtered_df[filtered_df['Gender'].str.contains("women and men", case=False, na=False)]
+
+    available_perfumes = sorted(filtered_df['Name'].unique())
+
+    st.write("")
+    st.write("")
+
+    # Row 2: Main Input
+    st.markdown('<p class="soft-label" style="text-align:center;">WHAT IS YOUR SIGNATURE SCENT?</p>', unsafe_allow_html=True)
     selected_perfume = st.selectbox(
-        "Label Hidden",
-        options=sorted_perfume_names,
+        "Main Selection",
+        options=available_perfumes,
         index=None,
-        placeholder="Type specific perfume name...",
+        placeholder="Select a fragrance you love...",
         label_visibility="collapsed"
     )
     
-    st.write("") # Spacer
+    st.write("") 
 
     if selected_perfume:
-        st.markdown(f"<center style='color:#666; font-size:12px; margin: 40px 0;'>ANALYZING DNA OF <b style='color:#D4AF37'>{selected_perfume}</b>...</center>", unsafe_allow_html=True)
+        st.markdown(f"<center style='color:#666; font-size:12px; margin: 40px 0; letter-spacing:1px;'>CURATING A COLLECTION INSPIRED BY <b style='color:#D4AF37'>{selected_perfume}</b></center>", unsafe_allow_html=True)
         
         recommendations = get_recommendations(selected_perfume, df, cosine_sim, indices)
         
@@ -181,8 +221,7 @@ if df is not None and cosine_sim is not None:
             
             st.markdown("""
             <div style='text-align:center; font-size:9px; color:#444; margin-top:50px; line-height:1.6;'>
-                POWERED BY COSINE SIMILARITY & NLP<br>
-                DATA SOURCE: FRAGRANTICA (KAGGLE)<br>
+                AI ENGINE: COSINE SIMILARITY<br>
                 © 2025 MAGDALENA ROMANIECKA
             </div>
             """, unsafe_allow_html=True)
