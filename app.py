@@ -39,7 +39,7 @@ def clean_text(text):
 def load_custom_css():
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap');
 
         /* BACKGROUND */
         .stApp {
@@ -48,57 +48,89 @@ def load_custom_css():
             background-attachment: fixed !important;
         }
 
-        /* HIDE HEADER/SIDEBAR */
+        /* HIDE HEADER & SIDEBAR */
         header, [data-testid="stHeader"] { background-color: transparent !important; }
         section[data-testid="stSidebar"] { display: none; }
 
-        /* TITLE FRAME */
-        .title-frame {
-            border: 3px double #D4AF37;
-            padding: 40px;
-            margin-bottom: 40px;
+        /* HEADER (Much smaller and elegant) */
+        .header-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            color: #D4AF37;
             text-align: center;
-            background: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+            letter-spacing: 3px;
+            margin-top: 20px;
+            margin-bottom: 5px;
         }
-        
-        /* FONTS */
-        * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
-        h1 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
+        .sub-header-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
 
-        /* DROPDOWN FIX */
+        /* DROPDOWN FIX (Dark Theme) */
         div[data-baseweb="select"] > div {
             background-color: #111 !important;
             border-color: #333 !important;
             color: #FFF !important;
+            text-align: center !important; /* Center text in box */
         }
-        div[data-baseweb="popover"], ul[role="listbox"], div[data-baseweb="menu"] {
+        div[data-baseweb="popover"], ul[role="listbox"] {
             background-color: #0E0E0E !important;
             border: 1px solid #D4AF37 !important;
         }
         li[role="option"] {
             color: #CCC !important;
-            background-color: #0E0E0E !important;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            justify-content: center; /* Center items in list */
         }
         li[role="option"]:hover, li[role="option"][aria-selected="true"] {
             background-color: #D4AF37 !important;
             color: #000 !important;
             font-weight: bold !important;
         }
+        /* Fix white text in input */
         div[data-baseweb="select"] span {
-            color: #FFF !important;
+            color: #E0E0E0 !important; 
         }
 
-        /* LABELS STYLE */
-        .soft-label {
-            font-size: 10px;
-            color: #888;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
+        /* LABELS STYLE (Centered & Gold) */
+        .input-label {
             font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: #D4AF37;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 5px;
         }
         
+        /* FOOTER STYLE */
+        .footer-box {
+            margin-top: 80px;
+            padding-top: 20px;
+            border-top: 1px solid #222;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            color: #555;
+            line-height: 1.8;
+        }
+        .footer-link {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .footer-link:hover {
+            color: #D4AF37;
+        }
+
+        /* CARD STYLING */
         hr { border-color: #333; margin: 2em 0; }
         </style>
     """, unsafe_allow_html=True)
@@ -106,22 +138,21 @@ def load_custom_css():
 # --- 5. RENDER CARD ---
 def render_recommendation(row, rank):
     initials = get_initials(row['Name'])
-    brand = row['Brand'] if 'Brand' in row else "Unknown Brand"
+    brand = row['Brand'] if 'Brand' in row else "Unknown"
     notes = clean_text(row['Notes']) if 'Notes' in row else "N/A"
-    if len(notes) > 120: notes = notes[:120] + "..."
+    if len(notes) > 110: notes = notes[:110] + "..."
 
     with st.container():
         col1, col2 = st.columns([1, 5])
         with col1:
             st.markdown(f"""
             <div style="
-                width: 60px; height: 60px; 
-                border: 2px solid #D4AF37; 
+                width: 55px; height: 55px; 
+                border: 1px solid #D4AF37; 
                 border-radius: 50%; 
-                background-color: #000;
+                background-color: #050505;
                 display: flex; align-items: center; justify-content: center;
-                font-family: 'Playfair Display'; font-size: 22px; color: #D4AF37;
-                box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+                font-family: 'Playfair Display'; font-size: 20px; color: #D4AF37;
                 margin: 0 auto;
             ">
                 {initials}
@@ -129,10 +160,9 @@ def render_recommendation(row, rank):
             """, unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
-            <div style="margin-left: 10px;">
-                <div style="font-size: 10px; color: #D4AF37; letter-spacing: 2px;">NO. {rank}</div>
-                <div style="font-family: 'Playfair Display'; font-size: 20px; color: #FFF;">{row['Name']}</div>
-                <div style="font-size: 12px; color: #888; font-style: italic; margin-bottom: 5px;">{brand}</div>
+            <div style="margin-left: 15px;">
+                <div style="font-family: 'Playfair Display'; font-size: 18px; color: #FFF; letter-spacing: 0.5px;">{row['Name']}</div>
+                <div style="font-size: 11px; color: #888; font-style: italic; margin-bottom: 4px;">{brand}</div>
                 <div style="font-size: 10px; color: #AAA;"><span style="color: #D4AF37;">ACCORDS:</span> {notes}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -153,63 +183,50 @@ def get_recommendations(perfume_name, df, cosine_sim, indices):
 # --- 7. APP EXECUTION ---
 load_custom_css()
 
-st.markdown("""
-<div class="title-frame">
-    <h1 style='margin-bottom: 5px; font-size: 42px; letter-spacing: 4px;'>SCENTSATIONAL</h1>
-    <p style='color:#888; font-size:11px; letter-spacing:4px; margin:0; text-transform: uppercase;'>
-        Personal Fragrance Curator
-    </p>
-</div>
-""", unsafe_allow_html=True)
+# --- ELEGANT HEADER ---
+st.markdown('<div class="header-text">SCENTSATIONAL</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header-text">AI PERFUME CONCIERGE</div>', unsafe_allow_html=True)
 
 df, cosine_sim = load_data()
 
 if df is not None and cosine_sim is not None:
     indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
     
-    # --- ELEGANT SELECTION FLOW ---
+    # --- FILTERS (Small & Centered) ---
+    # These help narrow the list but are visually secondary
+    col_a, col_b, col_c = st.columns([1, 2, 1]) # Use columns to center width
     
-    all_brands = sorted(df['Brand'].unique()) if 'Brand' in df.columns else []
-    
-    # Row 1: Refine
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown('<p class="soft-label">NARROW DOWN BY HOUSE (OPTIONAL)</p>', unsafe_allow_html=True)
-        selected_brand = st.selectbox("Brand", ["View All Houses"] + all_brands, label_visibility="collapsed")
-
     with col_b:
-        st.markdown('<p class="soft-label">PREFERRED STYLE</p>', unsafe_allow_html=True)
-        selected_gender = st.selectbox("Gender", ["All Collections", "Women", "Men", "Unisex"], label_visibility="collapsed")
+        # Brand Filter
+        all_brands = sorted(df['Brand'].unique()) if 'Brand' in df.columns else []
+        st.markdown('<div class="input-label">Filter by Brand (Optional)</div>', unsafe_allow_html=True)
+        selected_brand = st.selectbox("Brand", ["All Brands"] + all_brands, label_visibility="collapsed")
+        
+        st.write("") # Tiny gap
+        
+        # --- MAIN HERO INPUT ---
+        filtered_df = df.copy()
+        if selected_brand != "All Brands":
+            filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
+        
+        available_perfumes = sorted(filtered_df['Name'].unique())
 
-    # Logic
-    filtered_df = df.copy()
-    if selected_brand != "View All Houses":
-        filtered_df = filtered_df[filtered_df['Brand'] == selected_brand]
-    
-    if 'Gender' in filtered_df.columns and selected_gender != "All Collections":
-        if selected_gender == "Women": filtered_df = filtered_df[filtered_df['Gender'].str.contains("women", case=False, na=False)]
-        elif selected_gender == "Men": filtered_df = filtered_df[filtered_df['Gender'].str.contains("men", case=False, na=False)]
-        elif selected_gender == "Unisex": filtered_df = filtered_df[filtered_df['Gender'].str.contains("women and men", case=False, na=False)]
+        st.markdown('<div class="input-label" style="font-size:12px; margin-top:10px; font-weight:bold;">SELECT YOUR SIGNATURE SCENT</div>', unsafe_allow_html=True)
+        selected_perfume = st.selectbox(
+            "Main Selection",
+            options=available_perfumes,
+            index=None,
+            placeholder="Start typing...",
+            label_visibility="collapsed"
+        )
 
-    available_perfumes = sorted(filtered_df['Name'].unique())
-
-    st.write("")
-    st.write("")
-
-    # Row 2: Main Input
-    st.markdown('<p class="soft-label" style="text-align:center;">WHAT IS YOUR SIGNATURE SCENT?</p>', unsafe_allow_html=True)
-    selected_perfume = st.selectbox(
-        "Main Selection",
-        options=available_perfumes,
-        index=None,
-        placeholder="Select a fragrance you love...",
-        label_visibility="collapsed"
-    )
-    
+    st.write("") 
     st.write("") 
 
+    # --- RESULTS ---
     if selected_perfume:
-        st.markdown(f"<center style='color:#666; font-size:12px; margin: 40px 0; letter-spacing:1px;'>CURATING A COLLECTION INSPIRED BY <b style='color:#D4AF37'>{selected_perfume}</b></center>", unsafe_allow_html=True)
+        st.markdown(f"<center style='color:#666; font-size:11px; margin: 30px 0; letter-spacing:1px;'>CURATING COLLECTION BASED ON <b style='color:#D4AF37'>{selected_perfume}</b></center>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 1px; background: #333; margin-bottom: 30px;'></div>", unsafe_allow_html=True)
         
         recommendations = get_recommendations(selected_perfume, df, cosine_sim, indices)
         
@@ -218,14 +235,19 @@ if df is not None and cosine_sim is not None:
             for idx, row in recommendations.iterrows():
                 render_recommendation(row, rank)
                 rank += 1
-            
-            st.markdown("""
-            <div style='text-align:center; font-size:9px; color:#444; margin-top:50px; line-height:1.6;'>
-                AI ENGINE: COSINE SIMILARITY<br>
-                © 2025 MAGDALENA ROMANIECKA
-            </div>
-            """, unsafe_allow_html=True)
         else:
             st.warning("No recommendations found.")
+    
+    # --- FOOTER (CREDITS & LINKS) ---
+    st.markdown("""
+    <div class="footer-box">
+        <b>SCENTSATIONAL AI</b><br>
+        Part of Research Project: <a href="https://github.com/MagdalenaRomaniecka/ScentSational" target="_blank" class="footer-link">GitHub Repository</a><br>
+        Data Source: <a href="https://www.kaggle.com/datasets/nandini1999/perfume-recommendation-dataset" target="_blank" class="footer-link">Kaggle Dataset</a><br>
+        <br>
+        Created by <b>Magdalena Romaniecka</b>
+    </div>
+    """, unsafe_allow_html=True)
+
 else:
-    st.error("Data files missing.")
+    st.error("System Error: Data files (csv/npy) not found.")
