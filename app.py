@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. GOOGLE ANALYTICS ---
+# --- 2. ANALYTICS (GA4) ---
 def inject_ga4():
     GA_ID = "G-28PVV48GN5"
     ga_code = f"""
@@ -32,12 +32,13 @@ inject_ga4()
 @st.cache_data
 def load_data():
     try:
-        # Wczytujemy SUPER-BAZĘ (Zdjęcia + Oceny)
+        # Wczytujemy dane z połączonego pliku
         df = pd.read_csv("perfumes_dataset.csv")
         cosine_sim = np.load("hybrid_similarity.npy")
         
-        # Usuwamy numery z nazw
-        df['Name'] = df['Name'].astype(str).str.replace(r'^\d+[\.\s]*', '', regex=True)
+        # FIX: Usuwamy numery z nazw (np. "86. Chanel" -> "Chanel")
+        # Używamy bezpieczniejszej metody z regex
+        df['Name'] = df['Name'].astype(str).apply(lambda x: re.sub(r'^\d+[\.\s]*', '', x))
         
         return df, cosine_sim
     except FileNotFoundError:
@@ -46,6 +47,8 @@ def load_data():
 # --- 4. HELPER FUNCTIONS ---
 def get_initials(name):
     if not isinstance(name, str): return "SC"
+    # Usuwamy numery też tutaj dla pewności
+    name = re.sub(r'^\d+[\.\s]*', '', name)
     clean = re.sub(r"[^a-zA-Z0-9 ]", "", name).split()
     if len(clean) >= 2: 
         return (clean[0][0] + clean[1][0]).upper()
@@ -59,8 +62,7 @@ def generate_stars(score):
     try:
         val = float(score)
         full = int(val)
-        full = min(full, 5)
-        return "★" * full + "☆" * (5 - full)
+        return "★" * min(full, 5) + "☆" * (5 - min(full, 5))
     except:
         return "☆☆☆☆☆"
 
@@ -78,14 +80,13 @@ def load_custom_css():
         
         * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
         h1 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
-        header, [data-testid="stHeader"] { background: transparent !important; }
-        section[data-testid="stSidebar"] { display: none; }
+        header, [data-testid="stHeader"], section[data-testid="stSidebar"] { display: none; }
 
         .title-box {
             border: 3px double #D4AF37;
             padding: 40px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             background: rgba(0,0,0,0.5);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
@@ -108,11 +109,10 @@ def load_custom_css():
         li[role="option"]:hover {
             background-color: #D4AF37 !important;
             color: #000 !important;
-            font-weight: bold;
+            font-weight: bold !important;
         }
         div[data-baseweb="select"] span { color: #FFF !important; }
 
-        /* FOOTER STYLE */
         .footer {
             margin-top: 80px;
             padding: 20px 0;
@@ -122,18 +122,11 @@ def load_custom_css():
             color: #666;
             line-height: 2.0;
         }
-        .footer a {
-            color: #888;
-            text-decoration: none;
-            margin: 0 5px;
-            border-bottom: 1px dotted #555;
-            transition: 0.3s;
-        }
-        .footer a:hover { color: #D4AF37; border-bottom: 1px solid #D4AF37; }
+        .footer a { color: #888; text-decoration: none; margin: 0 5px; border-bottom: 1px dotted #555; }
+        .footer a:hover { color: #D4AF37; }
         
-        hr { border-color: #333; margin: 2em 0; }
         div[data-testid="stMetricValue"] { color: #D4AF37 !important; }
-        div[data-testid="stMetricLabel"] { color: #888 !important; }
+        hr { border-color: #333; margin: 2em 0; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -178,8 +171,7 @@ def get_recs(name, df, sim, indices):
         idx = indices[name]
         if isinstance(idx, pd.Series): idx = idx.iloc[0]
         
-        scores = list(enumerate(sim[idx]))
-        scores = sorted(scores, key=lambda x: x[1], reverse=True)
+        scores = sorted(list(enumerate(sim[idx])), key=lambda x: x[1], reverse=True)
         scores = scores[1:6] 
         return df.iloc[[i[0] for i in scores]]
     except KeyError:
@@ -207,7 +199,7 @@ if df is not None:
         "hidden_label",
         options=clean_names,
         index=None,
-        placeholder="Type to search database...",
+        placeholder="Type to search...",
         label_visibility="collapsed"
     )
     
@@ -233,6 +225,15 @@ if df is not None:
             """, unsafe_allow_html=True)
         else:
             st.error("No matches found.")
+    else:
+         # Footer when nothing selected
+         st.markdown("""
+            <div class="footer">
+                <b>SCENTSATIONAL AI</b> • Created by <b style="color:#E0E0E0;">Magdalena Romaniecka</b><br>
+                <a href="https://github.com/MagdalenaRomaniecka/ScentSational" target="_blank" class="footer-link">Research & Code</a> | 
+                <a href="https://www.kaggle.com/datasets/nandini1999/perfume-recommendation-dataset" target="_blank" class="footer-link">Data Source</a>
+            </div>
+            """, unsafe_allow_html=True)
 
 else:
-    st.error("CRITICAL ERROR: 'perfumes_dataset.csv' or 'hybrid_similarity.npy' missing. Please check your files.")
+    st.error("CRITICAL: 'perfumes_dataset.csv' or 'hybrid_similarity.npy' missing.")
