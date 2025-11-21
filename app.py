@@ -4,7 +4,7 @@ import numpy as np
 import re
 import streamlit.components.v1 as components
 
-# --- 1. CONFIGURATION ---
+# --- 1. KONFIGURACJA ---
 st.set_page_config(
     page_title="ScentSational AI",
     page_icon="💎",
@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. GOOGLE ANALYTICS ---
+# --- 2. ANALITYKA (GA4) ---
 def inject_ga4():
     GA_ID = "G-28PVV48GN5"
     ga_code = f"""
@@ -28,22 +28,22 @@ def inject_ga4():
 
 inject_ga4()
 
-# --- 3. DATA LOADING ---
+# --- 3. ŁADOWANIE DANYCH (Te "sklejone") ---
 @st.cache_data
 def load_data():
     try:
-        # Load the merged super-dataset
+        # Wczytujemy plik powstały z połączenia fra_perfumes i perfumes_cleaned
         df = pd.read_csv("perfumes_dataset.csv")
         cosine_sim = np.load("hybrid_similarity.npy")
         
-        # CLEANING: Remove leading numbers from names (e.g. "86. Chanel" -> "Chanel")
+        # Usuwamy numery z nazw (np. "86. Chanel" -> "Chanel")
         df['Name'] = df['Name'].astype(str).str.replace(r'^\d+[\.\s]*', '', regex=True)
         
         return df, cosine_sim
     except FileNotFoundError:
         return None, None
 
-# --- 4. HELPER FUNCTIONS ---
+# --- 4. FUNKCJE POMOCNICZE ---
 def get_initials(name):
     if not isinstance(name, str): return "SC"
     clean = re.sub(r"[^a-zA-Z0-9 ]", "", name).split()
@@ -58,52 +58,42 @@ def clean_text(text):
 def generate_stars(score):
     try:
         val = float(score)
-        full = int(val)
-        # Cap at 5 stars
-        full = min(full, 5)
-        return "★" * full + "☆" * (5 - full)
+        return "★" * int(val) + "☆" * (5 - int(val))
     except:
         return "☆☆☆☆☆"
 
-# --- 5. CSS STYLING ---
+# --- 5. STYL (Dla wyglądu Luxury) ---
 def load_custom_css():
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap');
 
-        /* BACKGROUND */
         .stApp {
             background-color: #0E0E0E !important;
             background-image: radial-gradient(circle at 50% 0%, #1c1c1c 0%, #000000 100%) !important;
             background-attachment: fixed !important;
         }
         
-        /* FONTS */
         * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
         h1 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
+        header, [data-testid="stHeader"], section[data-testid="stSidebar"] { display: none; }
 
-        /* HIDE DEFAULTS */
-        header, [data-testid="stHeader"] { background: transparent !important; }
-        section[data-testid="stSidebar"] { display: none; }
-
-        /* HERO TITLE BOX */
         .title-box {
             border: 3px double #D4AF37;
             padding: 40px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             background: rgba(0,0,0,0.5);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
 
-        /* DROPDOWN STYLE */
         div[data-baseweb="select"] > div {
             background-color: #111 !important;
             border-color: #D4AF37 !important;
             color: #FFF !important;
             height: 50px;
         }
-        div[data-baseweb="popover"], ul[role="listbox"], div[data-baseweb="menu"] {
+        div[data-baseweb="popover"], ul[role="listbox"] {
             background-color: #0E0E0E !important;
             border: 1px solid #D4AF37 !important;
         }
@@ -115,19 +105,12 @@ def load_custom_css():
         li[role="option"]:hover {
             background-color: #D4AF37 !important;
             color: #000 !important;
-            font-weight: bold;
+            font-weight: bold !important;
         }
-        div[data-baseweb="select"] span {
-            color: #FFF !important;
-        }
+        div[data-baseweb="select"] span { color: #FFF !important; }
 
-        /* METRICS */
-        div[data-testid="stMetricValue"] { color: #D4AF37 !important; font-size: 24px !important; }
-        div[data-testid="stMetricLabel"] { color: #888 !important; font-size: 10px !important; }
-        
-        /* FOOTER STYLE */
         .footer {
-            margin-top: 100px;
+            margin-top: 80px;
             padding: 20px 0;
             border-top: 1px solid #222;
             text-align: center;
@@ -135,127 +118,23 @@ def load_custom_css():
             color: #666;
             line-height: 2.0;
         }
-        .footer a {
-            color: #888;
-            text-decoration: none;
-            margin: 0 5px;
-            border-bottom: 1px dotted #555;
-            transition: 0.3s;
-        }
-        .footer a:hover {
-            color: #D4AF37;
-            border-bottom: 1px solid #D4AF37;
-        }
+        .footer a { color: #888; text-decoration: none; margin: 0 5px; border-bottom: 1px dotted #555; }
+        .footer a:hover { color: #D4AF37; }
         
+        div[data-testid="stMetricValue"] { color: #D4AF37 !important; }
         hr { border-color: #333; margin: 2em 0; }
         </style>
     """, unsafe_allow_html=True)
 
-# --- 6. RENDER CARD ---
+# --- 6. WYŚWIETLANIE KARTY (Zdjęcie + Ocena) ---
 def render_card(row, rank):
-    # Image Handling
     img_url = row['Image URL'] if 'Image URL' in row and pd.notna(row['Image URL']) else ""
-    
-    # Rating Handling
     score = row['Score'] if 'Score' in row else 0
     stars = generate_stars(score)
     
-    # Text Handling
-    brand = row['Brand'] if pd.notna(row['Brand']) else "Niche House"
+    brand = row['Brand'] if 'Brand' in row and pd.notna(row['Brand']) else "Niche House"
     notes = clean_text(row['Notes'])
     if len(notes) > 100: notes = notes[:100] + "..."
     
     with st.container():
-        col1, col2, col3 = st.columns([1.5, 4, 1.5])
-        
-        with col1:
-            if img_url:
-                st.image(img_url, width=100)
-            else:
-                # Monogram Fallback
-                initials = get_initials(row['Name'])
-                st.markdown(f"<div style='width:80px; height:80px; border:1px solid #D4AF37; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#D4AF37; margin:0 auto; font-family:Playfair Display; font-size:24px;'>{initials}</div>", unsafe_allow_html=True)
-
-        with col2:
-            st.markdown(f"""
-            <div style="margin-left: 0px;">
-                <div style="font-size: 10px; color: #D4AF37; letter-spacing: 2px;">MATCH NO. {rank}</div>
-                <div style="font-family: 'Playfair Display'; font-size: 20px; color: #FFF; margin-top:5px;">{row['Name']}</div>
-                <div style="font-size: 12px; color: #AAA; font-style: italic; margin-bottom: 8px;">{brand}</div>
-                <div style="font-size: 10px; color: #888; line-height:1.4;">{notes}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        with col3:
-            st.metric(label="RATING", value=f"{score:.1f}", delta=stars)
-        
-        st.markdown("<div style='height:1px; background:#222; margin:15px 0;'></div>", unsafe_allow_html=True)
-
-# --- 7. LOGIC ---
-def get_recs(name, df, sim, indices):
-    try:
-        idx = indices[name]
-        if isinstance(idx, pd.Series): idx = idx.iloc[0]
-        
-        scores = list(enumerate(sim[idx]))
-        scores = sorted(scores, key=lambda x: x[1], reverse=True)
-        scores = scores[1:6] 
-        return df.iloc[[i[0] for i in scores]]
-    except KeyError:
-        return pd.DataFrame()
-
-# --- 8. APP EXECUTION ---
-load_custom_css()
-
-st.markdown("""
-<div class="title-box">
-    <h1 style='font-size: 42px; margin:0;'>SCENTSATIONAL</h1>
-    <p style='font-size: 10px; color: #888; letter-spacing: 3px; margin-top: 5px;'>LUXURY AI CONCIERGE</p>
-</div>
-""", unsafe_allow_html=True)
-
-df, cosine_sim = load_data()
-
-if df is not None:
-    # Indices map
-    indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
-    
-    # Sorted names for dropdown
-    clean_names = sorted(df['Name'].unique().tolist())
-    
-    st.markdown("<div style='text-align:center; color:#D4AF37; font-size:12px; letter-spacing:1px; margin-bottom:10px;'>SELECT YOUR SIGNATURE SCENT</div>", unsafe_allow_html=True)
-    
-    target = st.selectbox(
-        "hidden_label",
-        options=clean_names,
-        index=None,
-        placeholder="Type to search database...",
-        label_visibility="collapsed"
-    )
-    
-    st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
-
-    if target:
-        recs = get_recs(target, df, cosine_sim, indices)
-        
-        if not recs.empty:
-            st.markdown(f"<center style='color:#666; font-size:11px; margin-bottom:40px;'>CURATED FOR LOVERS OF <b style='color:#D4AF37'>{target}</b></center>", unsafe_allow_html=True)
-            
-            rank = 1
-            for _, row in recs.iterrows():
-                render_card(row, rank)
-                rank += 1
-            
-            # FOOTER
-            st.markdown("""
-            <div class="footer">
-                <b>SCENTSATIONAL AI</b> • Created by <b style="color:#E0E0E0;">Magdalena Romaniecka</b><br>
-                <a href="https://github.com/MagdalenaRomaniecka/ScentSational" target="_blank">Code & Research</a> | 
-                <a href="https://www.kaggle.com/datasets/nandini1999/perfume-recommendation-dataset" target="_blank">Data Source</a>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.error("No matches found.")
-
-else:
-    st.error("CRITICAL ERROR: 'perfumes_dataset.csv' or 'hybrid_similarity.npy' missing. Please check your files.")
+        col1, col2
