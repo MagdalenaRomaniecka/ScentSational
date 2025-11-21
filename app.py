@@ -22,11 +22,11 @@ inject_ga4()
 @st.cache_data
 def load_data():
     try:
-        # TUTAJ JEST ZMIANA NA TWOJĄ NAZWĘ PLIKU:
-        df = pd.read_csv("finale_perfume.csv")
+        # --- ZMIANA NAZWY PLIKU TUTAJ ---
+        df = pd.read_csv("finale_perfume_data.csv")
         cosine_sim = np.load("hybrid_similarity.npy")
         
-        # Usuwamy numery z nazw
+        # Clean names
         df['Name'] = df['Name'].astype(str).str.replace(r'^\d+[\.\s]*', '', regex=True)
         return df, cosine_sim
     except FileNotFoundError:
@@ -59,11 +59,13 @@ def load_custom_css():
         header, [data-testid="stHeader"], section[data-testid="stSidebar"] { display: none; }
         
         .title-box { border: 3px double #D4AF37; padding: 30px; text-align: center; margin-bottom: 40px; background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(212, 175, 55, 0.15); }
+        
         div[data-baseweb="select"] > div { background-color: #111 !important; border-color: #D4AF37 !important; color: #FFF !important; height: 50px; }
         div[data-baseweb="popover"], ul[role="listbox"] { background-color: #0E0E0E !important; border: 1px solid #D4AF37 !important; }
         li[role="option"] { color: #CCC !important; background-color: #0E0E0E !important; }
         li[role="option"]:hover { background-color: #D4AF37 !important; color: #000 !important; font-weight: bold; }
         div[data-baseweb="select"] span { color: #FFF !important; }
+        
         .footer-link { color: #888; text-decoration: none; border-bottom: 1px dotted #555; }
         .footer-link:hover { color: #D4AF37; }
         div[data-testid="stMetricValue"] { color: #D4AF37 !important; }
@@ -106,9 +108,7 @@ df, cosine_sim = load_data()
 if df is not None:
     indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
     st.markdown("<div style='text-align:center; color:#D4AF37; font-size:12px; letter-spacing:1px; margin-bottom:10px;'>SELECT YOUR SIGNATURE SCENT</div>", unsafe_allow_html=True)
-    # Sortowanie czystych nazw dla listy
-    clean_names = sorted(df['Name'].unique().tolist())
-    target = st.selectbox("hidden", options=clean_names, index=None, placeholder="Type to search...", label_visibility="collapsed")
+    target = st.selectbox("hidden", options=sorted(df['Name'].unique()), index=None, placeholder="Type to search...", label_visibility="collapsed")
     st.markdown("<div style='height:50px;'></div>", unsafe_allow_html=True)
 
     if target:
@@ -117,6 +117,6 @@ if df is not None:
             st.markdown(f"<center style='color:#666; font-size:11px; margin-bottom:40px;'>CURATED FOR LOVERS OF <b style='color:#D4AF37'>{target}</b></center>", unsafe_allow_html=True)
             rank = 1
             for _, row in recs.iterrows(): render_card(row, rank); rank+=1
-            st.markdown("""<div style="text-align:center; margin-top:80px; padding-top:20px; border-top:1px solid #222; font-size:9px; color:#555; line-height:2.0;"><b>SCENTSATIONAL AI</b><br>Research: <a href="https://github.com/MagdalenaRomaniecka/ScentSational" target="_blank" class="footer-link">GitHub</a><br>Created by <b>Magdalena Romaniecka</b></div>""", unsafe_allow_html=True)
+            st.markdown("""<div class="footer"><b>SCENTSATIONAL AI</b> • Created by <b style="color:#E0E0E0;">Magdalena Romaniecka</b><br><a href="https://github.com/MagdalenaRomaniecka/ScentSational" target="_blank" class="footer-link">GitHub</a> | <a href="https://www.kaggle.com/datasets/nandini1999/perfume-recommendation-dataset" target="_blank" class="footer-link">Data Source</a></div>""", unsafe_allow_html=True)
         else: st.error("No matches found.")
-else: st.error("CRITICAL: 'finale_perfume.csv' or 'hybrid_similarity.npy' missing.")
+else: st.error("CRITICAL ERROR: 'finale_perfume_data.csv' missing.")
