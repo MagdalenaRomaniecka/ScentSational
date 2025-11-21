@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
-import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(
@@ -12,9 +11,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. GOOGLE ANALYTICS (YOUR ID) ---
+# --- 2. ANALYTICS ---
 def inject_ga4():
-    GA_ID = "G-28PVV48GN5" # Your specific ID
+    GA_ID = "G-28PVV48GN5"
     ga_code = f"""
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
     <script>
@@ -24,20 +23,22 @@ def inject_ga4():
       gtag('config', '{GA_ID}');
     </script>
     """
+    import streamlit.components.v1 as components
     components.html(ga_code, height=0, width=0)
 
 inject_ga4()
 
-# --- 3. DATA LOADING ---
+# --- 3. DATA LOADING (WITH CLEANING) ---
 @st.cache_data
 def load_data():
     try:
         df = pd.read_csv("perfumes_dataset.csv")
         cosine_sim = np.load("hybrid_similarity.npy")
         
-        # --- CRITICAL FIX: REMOVE NUMBERS FROM NAMES ---
-        # Regex removes leading digits/dots/spaces (e.g. "86. Tihota" -> "Tihota")
+        # AGGRESSIVE CLEANING: Remove numbers like "0.", "86 ", "102." from start of name
+        # This runs immediately after loading
         df['Name'] = df['Name'].astype(str).str.replace(r'^\d+[\.\s]*', '', regex=True)
+        df['Name'] = df['Name'].str.strip()
         
         return df, cosine_sim
     except FileNotFoundError:
@@ -46,8 +47,11 @@ def load_data():
 # --- 4. HELPER FUNCTIONS ---
 def get_initials(name):
     if not isinstance(name, str): return "SC"
-    clean = re.sub(r"[^a-zA-Z0-9 ]", "", name).split()
-    if len(clean) >= 2: return (clean[0][0] + clean[1][0]).upper()
+    # Remove numbers here too just in case
+    clean_name = re.sub(r'^\d+[\.\s]*', '', name)
+    clean = re.sub(r"[^a-zA-Z0-9 ]", "", clean_name).split()
+    if len(clean) >= 2: 
+        return (clean[0][0] + clean[1][0]).upper()
     return clean[0][:2].upper() if clean else "SC"
 
 def clean_text(text):
@@ -56,9 +60,10 @@ def clean_text(text):
 
 def generate_stars(score):
     try:
-        full = int(float(score))
-        return "★" * min(full, 5) + "☆" * (5 - min(full, 5))
-    except: return "☆☆☆☆☆"
+        val = float(score)
+        return "★" * int(val) + "☆" * (5 - int(val))
+    except:
+        return "☆☆☆☆☆"
 
 # --- 5. CSS STYLING ---
 def load_custom_css():
@@ -74,8 +79,7 @@ def load_custom_css():
         
         * { font-family: 'Montserrat', sans-serif; color: #E0E0E0; }
         h1 { font-family: 'Playfair Display', serif; color: #D4AF37 !important; }
-        header, [data-testid="stHeader"] { background: transparent !important; }
-        section[data-testid="stSidebar"] { display: none; }
+        header, [data-testid="stHeader"], section[data-testid="stSidebar"] { display: none; }
 
         .title-box {
             border: 3px double #D4AF37;
@@ -86,13 +90,14 @@ def load_custom_css():
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
         }
 
+        /* Dropdowns */
         div[data-baseweb="select"] > div {
             background-color: #111 !important;
             border-color: #D4AF37 !important;
             color: #FFF !important;
             height: 50px;
         }
-        div[data-baseweb="popover"], ul[role="listbox"] {
+        div[data-baseweb="popover"], ul[role="listbox"], div[data-baseweb="menu"] {
             background-color: #0E0E0E !important;
             border: 1px solid #D4AF37 !important;
         }
@@ -101,14 +106,14 @@ def load_custom_css():
             background-color: #0E0E0E !important;
             font-size: 12px !important;
         }
-        li[role="option"]:hover {
+        li[role="option"]:hover, li[role="option"][aria-selected="true"] {
             background-color: #D4AF37 !important;
             color: #000 !important;
-            font-weight: bold;
+            font-weight: bold !important;
         }
         div[data-baseweb="select"] span { color: #FFF !important; }
 
-        /* FOOTER STYLING */
+        /* Footer */
         .footer {
             margin-top: 100px;
             padding: 20px 0;
@@ -118,17 +123,8 @@ def load_custom_css():
             color: #666;
             line-height: 2.0;
         }
-        .footer a {
-            color: #888;
-            text-decoration: none;
-            margin: 0 5px;
-            border-bottom: 1px dotted #555;
-            transition: 0.3s;
-        }
-        .footer a:hover {
-            color: #D4AF37;
-            border-bottom: 1px solid #D4AF37;
-        }
+        .footer a { color: #888; text-decoration: none; margin: 0 5px; border-bottom: 1px dotted #555; }
+        .footer a:hover { color: #D4AF37; }
         
         hr { border-color: #333; margin: 2em 0; }
         div[data-testid="stMetricValue"] { color: #D4AF37 !important; }
@@ -141,8 +137,7 @@ def render_card(row, rank):
     img_url = row['Image URL'] if 'Image URL' in row and pd.notna(row['Image URL']) else ""
     score = row['Score'] if 'Score' in row else 0
     stars = generate_stars(score)
-    
-    brand = row['Brand'] if 'Brand' in row and pd.notna(row['Brand']) else "Niche House"
+    brand = row['Brand'] if pd.notna(row['Brand']) else "Niche House"
     notes = clean_text(row['Notes'])
     if len(notes) > 100: notes = notes[:100] + "..."
     
@@ -175,8 +170,11 @@ def render_card(row, rank):
 def get_recs(name, df, sim, indices):
     try:
         idx = indices[name]
+        # Handle duplicates
         if isinstance(idx, pd.Series): idx = idx.iloc[0]
-        scores = sorted(list(enumerate(sim[idx])), key=lambda x: x[1], reverse=True)
+        
+        scores = list(enumerate(sim[idx]))
+        scores = sorted(scores, key=lambda x: x[1], reverse=True)
         scores = scores[1:6] 
         return df.iloc[[i[0] for i in scores]]
     except KeyError:
@@ -195,15 +193,15 @@ st.markdown("""
 df, cosine_sim = load_data()
 
 if df is not None:
-    # CLEAN LIST: Ensure unique and sorted
-    clean_names = sorted(df['Name'].unique().tolist())
+    # Force clean names list again just to be sure
+    unique_names = sorted(df['Name'].unique().tolist())
     indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
     
     st.markdown("<div style='text-align:center; color:#D4AF37; font-size:12px; letter-spacing:1px; margin-bottom:10px;'>SELECT YOUR SIGNATURE SCENT</div>", unsafe_allow_html=True)
     
     target = st.selectbox(
         "hidden_label",
-        options=clean_names,
+        options=unique_names,
         index=None,
         placeholder="Type to search database...",
         label_visibility="collapsed"
@@ -221,7 +219,7 @@ if df is not None:
                 render_card(row, rank)
                 rank += 1
             
-            # --- FOOTER ---
+            # FOOTER
             st.markdown("""
             <div class="footer">
                 <b>SCENTSATIONAL AI</b> • Created by <b style="color:#E0E0E0;">Magdalena Romaniecka</b><br>
@@ -233,4 +231,4 @@ if df is not None:
             st.error("No matches found.")
 
 else:
-    st.error("CRITICAL ERROR: 'perfumes_dataset.csv' or 'hybrid_similarity.npy' missing.")
+    st.error("Files not found.")
