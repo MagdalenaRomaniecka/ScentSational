@@ -1,148 +1,224 @@
 import streamlit as st
 import pandas as pd
-import os
+import plotly.express as px
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURATION & DESIGN SYSTEM (Dark Luxury)
+# 1. CONFIGURATION & DESIGN SYSTEM
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational Discovery", layout="wide")
 
 st.markdown("""
     <style>
-    /* Global Background */
+    /* Global Styling */
     .stApp { background-color: #0E0E0E; color: #E0E0E0; }
-    
-    /* Typography */
     h1, h2, h3 { color: #D4AF37 !important; font-family: 'Helvetica Neue', sans-serif; }
     
-    /* Metrics & Cards */
-    [data-testid="stMetricValue"] { color: #D4AF37; }
-    .css-1r6slb0 { background-color: #161616; border: 1px solid #333; }
-    
-    /* The Bridge Button (Golden Link) */
+    /* Custom Metric Styling */
+    div[data-testid="stMetricValue"] { color: #D4AF37; font-size: 24px; }
+    div[data-testid="stMetricLabel"] { color: #888; }
+    div[data-testid="metric-container"] {
+        background-color: #161616;
+        border: 1px solid #333;
+        padding: 10px;
+        border-radius: 5px;
+        border-left: 3px solid #D4AF37;
+    }
+
+    /* Bridge Button */
     .bridge-button {
-        display: inline-block;
-        background-color: #D4AF37;
-        color: #000000;
-        padding: 15px 30px;
+        display: block;
+        background: linear-gradient(45deg, #B59024, #D4AF37);
+        color: #000;
+        padding: 15px;
         text-align: center;
         text-decoration: none;
-        font-size: 18px;
         font-weight: bold;
-        border-radius: 5px;
-        border: 1px solid #B59024;
-        width: 100%;
+        border-radius: 8px;
         margin-top: 20px;
-        transition: 0.3s;
+        transition: transform 0.2s;
     }
     .bridge-button:hover {
-        background-color: #F4CF57;
-        color: #000000;
-        box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        transform: scale(1.02);
+        color: #000;
+        text-decoration: none;
     }
-    
-    /* Image Captions */
-    .caption { text-align: center; color: #888; font-style: italic; margin-top: 5px; }
+
+    /* Luxury Card for Results */
+    .perfume-card {
+        background-color: #161616;
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        transition: 0.3s;
+    }
+    .perfume-card:hover {
+        border-color: #D4AF37;
+        background-color: #1A1A1A;
+    }
+    .perfume-title { color: #D4AF37; font-size: 1.2em; font-weight: bold; margin: 0; }
+    .perfume-brand { color: #888; text-transform: uppercase; font-size: 0.8em; margin-bottom: 10px; }
+    .perfume-notes { color: #CCC; font-size: 0.9em; font-style: italic; }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING (Lightweight - No AI Model)
+# 2. DATA LOADING & PROCESSING
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     try:
+        # Load data
         df = pd.read_csv('scentsational_data.csv')
+        
+        # Ensure necessary columns exist for analytics
+        if 'Brand' not in df.columns and 'Brand_Clean' in df.columns:
+            df['Brand'] = df['Brand_Clean'] # Fallback
+            
         return df
     except FileNotFoundError:
         return None
 
 def main():
+    # --- SIDEBAR (THE BRIDGE) ---
+    with st.sidebar:
+        st.markdown("## ⚜️ MENU")
+        st.info("Currently viewing: **Discovery Mode** (Lite)")
+        
+        st.markdown("---")
+        st.markdown("### 🤖 Need AI Recommendations?")
+        st.write("Switch to our advanced AI engine to find perfumes based on deep similarity.")
+        st.markdown("""
+            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
+               🚀 LAUNCH AI CORE
+            </a>
+        """, unsafe_allow_html=True)
+
     # --- HEADER ---
-    col_logo, col_title = st.columns([1, 4])
-    with col_title:
-        st.title("⚜️ SCENTSATIONAL | DISCOVERY")
-        st.markdown("### Interactive Niche Perfume Analytics")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.title("SCENTSATIONAL | INSIGHTS")
+        st.markdown("Interactive Market Analysis & Catalog Explorer")
 
     df = load_data()
     
     if df is None:
-        st.error("Data file not found. Please upload 'scentsational_data.csv'.")
+        st.error("Data missing. Please ensure 'scentsational_data.csv' is in the repository.")
         return
 
-    # --- THE BRIDGE (Sidebar) ---
-    with st.sidebar:
-        st.header("🤖 AI CONCIERGE")
-        st.info("Looking for personalized recommendations based on your favorite scent?")
-        # LINK DO HUGGING FACE (Tu wstawimy Twój link do Space'a, jak już go postawimy)
-        st.markdown("""
-            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
-               🚀 LAUNCH AI ENGINE
-            </a>
-        """, unsafe_allow_html=True)
-        st.write("")
-        st.markdown("---")
-        st.write("**Database Stats:**")
-        st.metric("Niche Perfumes", len(df))
-        st.metric("Unique Brands", df['Brand'].nunique() if 'Brand' in df.columns else 0)
+    # --- TOP METRICS ROW ---
+    st.markdown("### 📈 Database Overview")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Perfumes", f"{len(df)}")
+    m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
+    m3.metric("Top Note", "Oud" if len(df) > 10 else "Sample Mode") # Placeholder logic
+    m4.metric("Avg Rating", f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "N/A")
 
-    # --- MAIN CONTENT TABS ---
-    tab1, tab2 = st.tabs(["📊 MARKET INSIGHTS", "🔍 CATALOG EXPLORER"])
+    st.write("")
+    
+    # --- TABS ---
+    tab_analytics, tab_explorer = st.tabs(["📊 LIVE ANALYTICS", "🔍 CATALOG EXPLORER"])
 
-    # TAB 1: VISUAL ANALYTICS (Twoje Wykresy)
-    with tab1:
-        st.subheader("The DNA of Niche Perfumery")
-        st.write("Visualizing the most dominant notes and exclusive brands in our collection.")
+    # === TAB 1: MODERN ANALYTICS (PLOTLY) ===
+    with tab_analytics:
+        st.markdown("### Market Trends")
         
-        # Row 1: Wordcloud & Brands
-        col1, col2 = st.columns(2)
+        col_chart1, col_chart2 = st.columns(2)
         
-        with col1:
-            st.markdown("#### ☁️ Olfactory Word Cloud")
-            if os.path.exists("wordcloud.jpg"):
-                st.image("wordcloud.jpg", use_container_width=True)
-                st.markdown("<p class='caption'>Most frequent fragrance notes analyzed from 5,000+ descriptions.</p>", unsafe_allow_html=True)
-            else:
-                st.warning("Wordcloud image not found.")
-
-        with col2:
+        with col_chart1:
             st.markdown("#### 🏆 Top Niche Brands")
-            if os.path.exists("brands.png"):
-                st.image("brands.png", use_container_width=True)
-                st.markdown("<p class='caption'>Leading houses by number of releases in the dataset.</p>", unsafe_allow_html=True)
+            if 'Brand' in df.columns:
+                # Dynamic calculation
+                top_brands = df['Brand'].value_counts().head(10).reset_index()
+                top_brands.columns = ['Brand', 'Count']
+                
+                # Plotly Chart (Dark Theme)
+                fig = px.bar(top_brands, x='Count', y='Brand', orientation='h',
+                             color='Count', color_continuous_scale=['#806000', '#D4AF37'])
+                
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#E0E0E0',
+                    yaxis=dict(autorange="reversed"), # Top brand on top
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    height=350,
+                    xaxis_title="", yaxis_title=""
+                )
+                st.plotly_chart(fig, use_container_width=True)
             else:
-                st.warning("Brands chart image not found.")
+                st.warning("Brand data not available.")
 
-        # Row 2: Notes Analysis (New Chart)
+        with col_chart2:
+            st.markdown("#### ⭐ Rating Distribution")
+            if 'Rating Value' in df.columns:
+                fig2 = px.histogram(df, x='Rating Value', nbins=20,
+                                    color_discrete_sequence=['#D4AF37'])
+                
+                fig2.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#E0E0E0',
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    height=350,
+                    xaxis_title="Rating (1-5)", yaxis_title="Count",
+                    bargap=0.1
+                )
+                st.plotly_chart(fig2, use_container_width=True)
+            else:
+                st.warning("Rating data not available.")
+
+    # === TAB 2: EXPLORER (BETTER UI) ===
+    with tab_explorer:
+        st.markdown("### 🔎 Browse Collection")
+        
+        # 1. Search Bar
+        search_query = st.text_input("Search Collection:", placeholder="Type a brand (e.g. 'Creed') or note (e.g. 'Vanilla')...")
+        
+        # 2. Quick Filters (Chips)
+        st.write("Quick Filters:")
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        if col_f1.button("🔥 High Rated (>4.5)"):
+            search_query = "High_Rated_Trigger"
+        if col_f2.button("🌿 Vetiver Scents"):
+            search_query = "vetiver"
+        if col_f3.button("🪵 Oud Scents"):
+            search_query = "oud"
+        
         st.divider()
-        st.markdown("#### 🎵 Top 20 Olfactory Notes")
-        if os.path.exists("notes.png"):
-            st.image("notes.png", use_container_width=True)
-            st.markdown("<p class='caption'>A breakdown of the most popular ingredients in niche perfumery.</p>", unsafe_allow_html=True)
-        else:
-             st.warning("Notes chart image not found.")
 
+        # 3. Filtering Logic
+        filtered_df = df.copy()
+        
+        if search_query:
+            if search_query == "High_Rated_Trigger":
+                 if 'Rating Value' in filtered_df.columns:
+                    filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
+            else:
+                # Search across all columns
+                mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
+                filtered_df = filtered_df[mask]
 
-    # TAB 2: SIMPLE EXPLORER (Baza danych)
-    with tab2:
-        st.subheader("Browse the Collection")
+        # 4. Display Results as CARDS (Not Table)
+        st.write(f"Found **{len(filtered_df)}** perfumes:")
         
-        # Simple Search
-        search_term = st.text_input("Search by Name, Brand, or Note:", placeholder="e.g. Oud, Creed, Rose...")
-        
-        if search_term:
-            # Simple string matching
-            mask = df.astype(str).apply(lambda x: x.str.contains(search_term, case=False)).any(axis=1)
-            results = df[mask].head(20) # Limit to 20 to keep it fast
+        # Show top 50 to avoid lag
+        for index, row in filtered_df.head(50).iterrows():
+            brand = row.get('Brand', 'Unknown Brand')
+            name = row.get('Name', 'Unknown Name')
+            notes = row.get('Main Accords', 'Notes unavailable')
+            rating = row.get('Rating Value', 'N/A')
             
-            st.write(f"Found {len(results)} matches (showing top 20):")
-            st.dataframe(
-                results[['Name', 'Brand', 'Main Accords', 'Rating Value']],
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.info("Enter a keyword above to explore the database.")
+            st.markdown(f"""
+                <div class="perfume-card">
+                    <div style="display: flex; justify-content: space-between;">
+                        <p class="perfume-title">{name}</p>
+                        <span style="color: #D4AF37;">⭐ {rating}</span>
+                    </div>
+                    <p class="perfume-brand">{brand}</p>
+                    <p class="perfume-notes">🎶 {notes}</p>
+                </div>
+            """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
