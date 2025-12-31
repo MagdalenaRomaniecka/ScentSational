@@ -20,7 +20,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* TYPOGRAPHY */
+    /* TYPOGRAPHY - HEADER */
     h1 {
         font-family: 'Playfair Display', serif !important;
         color: #D4AF37 !important;
@@ -40,39 +40,46 @@ st.markdown("""
         margin-bottom: 0;
     }
 
-    /* --- HEADER FRAME (Nowa Złota Rama dla Tytułu) --- */
+    /* --- GOLD FRAMES (RAMKI) --- */
+    
+    /* 1. Ramka Nagłówka */
     .header-frame {
         border: 1px solid #D4AF37;
         padding: 30px;
-        margin-bottom: 30px;
-        background: rgba(0,0,0,0.3);
-        box-shadow: 0 0 15px rgba(212, 175, 55, 0.05);
+        margin-bottom: 40px;
+        background: rgba(20, 20, 20, 0.4);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
     }
 
-    /* --- METRIC FRAMES (Złote Ramki dla Liczb) --- */
+    /* 2. Ramki Metryk (Liczby) - WYMUSZONE STYLE */
     div[data-testid="metric-container"] {
-        background-color: transparent;
-        border: 1px solid #D4AF37 !important; /* Złota ramka wymuszona */
-        padding: 20px 10px;
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid #D4AF37 !important; /* Złota ramka */
+        padding: 20px !important;
+        border-radius: 2px !important; /* Lekko ścięte rogi */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         text-align: center;
         transition: 0.3s;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        margin-bottom: 10px;
     }
     div[data-testid="metric-container"]:hover {
-        background-color: rgba(212, 175, 55, 0.05);
+        border-color: #F0E68C !important; /* Jaśniejsze złoto po najechaniu */
         box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        transform: translateY(-2px);
     }
+    
+    /* Kolory wewnątrz metryk */
     div[data-testid="stMetricValue"] {
         font-family: 'Playfair Display', serif;
-        color: #F0E68C;
-        font-size: 28px !important;
+        color: #F0E68C !important; /* Jasne złoto */
+        font-size: 32px !important;
     }
     div[data-testid="stMetricLabel"] {
         font-family: 'Lato', sans-serif;
         text-transform: uppercase;
-        font-size: 11px !important;
+        font-size: 12px !important;
         letter-spacing: 2px;
-        color: #D4AF37; /* Label też na złoto */
+        color: #D4AF37 !important; /* Ciemniejsze złoto */
     }
 
     /* --- SEARCH BAR --- */
@@ -82,7 +89,7 @@ st.markdown("""
         color: #D4AF37;
     }
     
-    /* --- PERFUME ROW --- */
+    /* --- PERFUME ROW (BALANCED TYPOGRAPHY) --- */
     .perfume-row {
         border-bottom: 1px solid #1a1a1a;
         padding: 50px 0;
@@ -97,27 +104,32 @@ st.markdown("""
         border-bottom: 1px solid #D4AF37;
     }
     
+    /* MARKA - WIĘKSZA I WYRAŹNIEJSZA */
     .row-brand {
         font-family: 'Lato', sans-serif;
-        font-size: 0.75rem;
+        font-size: 1.1rem; /* Zwiększone z 0.75rem */
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
         color: #D4AF37;
-        margin-bottom: 15px;
-        opacity: 0.9;
+        margin-bottom: 10px;
+        opacity: 1; /* Pełna widoczność */
     }
+    
+    /* NAZWA - MNIEJSZA I BARDZIEJ ELEGANCKA */
     .row-name {
         font-family: 'Playfair Display', serif;
-        font-size: 3rem; 
+        font-size: 2.2rem; /* Zmniejszone z 3rem dla balansu */
         color: #fff;
-        line-height: 1.1;
+        line-height: 1.2;
         margin-bottom: 20px;
         text-transform: capitalize; 
+        font-weight: 400;
     }
+    
     .row-rating {
         font-family: 'Lato', sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         color: #888;
         border: 1px solid #333;
         padding: 5px 15px;
@@ -127,7 +139,7 @@ st.markdown("""
     }
     .row-notes {
         font-family: 'Playfair Display', serif;
-        font-size: 1rem;
+        font-size: 1.1rem;
         color: #ccc;
         font-style: italic;
         margin-bottom: 30px;
@@ -165,7 +177,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA ENGINE
+# 2. DATA ENGINE (SMART CLEANER & FILTER)
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
@@ -180,9 +192,16 @@ def load_data():
     if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
     if 'url' not in df.columns and 'link' in df.columns: df = df.rename(columns={'link': 'url'})
     
-    # Auto-Cleaner
+    # --- DATA CLEANING (Usuwanie śmieci typu "0", "09") ---
     if 'Name' in df.columns:
-        df['Name'] = df['Name'].astype(str).str.replace('-', ' ').str.title()
+        # 1. Zamień na tekst
+        df['Name'] = df['Name'].astype(str)
+        # 2. Usuń nazwy krótsze niż 2 znaki (np "0")
+        df = df[df['Name'].str.len() > 1]
+        # 3. Usuń nazwy, które są samymi cyframi (np "09", "100")
+        df = df[~df['Name'].str.match(r'^\d+$')]
+        # 4. Formatowanie (usuwanie myślników)
+        df['Name'] = df['Name'].str.replace('-', ' ').str.title()
     
     # Fix Ratings
     if 'Rating Value' in df.columns:
@@ -194,7 +213,6 @@ def load_data():
     if existing_accord_cols:
         df['Main Accords'] = df[existing_accord_cols].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         df['Main Accords'] = df['Main Accords'].replace('', 'N/A')
-        # Extract Primary Accord
         df['Primary Accord'] = df[existing_accord_cols[0]].astype(str) if len(existing_accord_cols) > 0 else "Unknown"
     else:
         df['Main Accords'] = "N/A"
@@ -220,7 +238,6 @@ def main():
         """, unsafe_allow_html=True)
 
     # --- HEADER FRAME (GOLD BOX) ---
-    # To jest nowa ramka, o którą prosiłaś
     st.markdown("""
         <div class="header-frame">
             <h1>SCENTSATIONAL</h1>
@@ -231,7 +248,7 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- METRICS (GOLD BOXES) ---
+    # --- METRICS (GOLD BOXES - FORCED STYLE) ---
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Collection Size", f"{len(df):,}".replace(",", " "))
     c2.metric("Designers", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-")
@@ -287,6 +304,7 @@ def main():
     with tab_explore:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
+        # Search List - Cleaned
         search_options = sorted(list(set(df['Brand'].dropna().unique()) | set(df['Name'].dropna().unique())))
         selected_search = st.selectbox(
             "Type to search...", options=search_options, index=None, 
@@ -309,7 +327,7 @@ def main():
 
         st.markdown(f"<div style='text-align: center; color: #444; margin: 30px 0; letter-spacing: 1px;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
-        # ROWS
+        # ROWS - BALANCED TYPOGRAPHY
         for index, row in filtered_df.head(40).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
