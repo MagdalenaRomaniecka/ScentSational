@@ -1,3 +1,5 @@
+Python
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -70,28 +72,28 @@ def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     
-    # Próba 1: Standardowe UTF-8 (Nowoczesny format)
+    # Attempt 1: Standard UTF-8
     try:
         df = pd.read_csv(file_path)
     except UnicodeDecodeError:
-        pass # Idziemy do planu B
+        pass 
         
-    # Próba 2: Latin-1 (Format Excela/Windows) - to zazwyczaj naprawia błąd
+    # Attempt 2: Latin-1 (Excel/Windows format)
     if df is None:
         try:
             df = pd.read_csv(file_path, encoding='latin1')
         except:
-            pass # Idziemy do planu C
+            pass 
 
-    # Próba 3: Ignorowanie błędów (Ostateczność)
+    # Attempt 3: Ignore errors as last resort
     if df is None:
         try:
             df = pd.read_csv(file_path, encoding='utf-8', encoding_errors='ignore')
         except Exception as e:
-            st.error(f"Krytyczny błąd wczytywania danych: {e}")
+            st.error(f"Critical data loading error: {e}")
             return None
 
-    # Zabezpieczenie nazw kolumn (Ujednolicenie)
+    # Column name standardization
     if 'Brand' not in df.columns and 'Brand_Clean' in df.columns:
         df['Brand'] = df['Brand_Clean'] 
             
@@ -106,6 +108,7 @@ def main():
         st.markdown("---")
         st.markdown("### 🤖 Need AI Recommendations?")
         st.write("Switch to our advanced AI engine to find perfumes based on deep similarity.")
+        # Link to Hugging Face Space
         st.markdown("""
             <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
                🚀 LAUNCH AI CORE
@@ -129,8 +132,9 @@ def main():
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Perfumes", f"{len(df)}")
     m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
-    # Logika dla najpopularniejszej nuty (prosta analiza tekstu)
-    top_note = "Oud" # Placeholder
+    
+    # Logic for trending note
+    top_note = "Oud" # Default placeholder
     if 'Main Accords' in df.columns:
         try:
             all_notes = df['Main Accords'].astype(str).str.cat(sep=', ')
@@ -140,6 +144,7 @@ def main():
                 top_note = most_common[0][0]
         except:
             pass
+            
     m3.metric("Trending Note", top_note)
     m4.metric("Avg Rating", f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "N/A")
 
@@ -235,4 +240,21 @@ def main():
         
         # Show top 50 to avoid lag
         for index, row in filtered_df.head(50).iterrows():
-            brand = row.get('Brand', 'Unknown Brand
+            brand = row.get('Brand', 'Unknown Brand')
+            name = row.get('Name', 'Unknown Name')
+            notes = row.get('Main Accords', 'Notes unavailable')
+            rating = row.get('Rating Value', 'N/A')
+            
+            st.markdown(f"""
+                <div class="perfume-card">
+                    <div style="display: flex; justify-content: space-between;">
+                        <p class="perfume-title">{name}</p>
+                        <span style="color: #D4AF37;">⭐ {rating}</span>
+                    </div>
+                    <p class="perfume-brand">{brand}</p>
+                    <p class="perfume-notes">🎶 {notes}</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
