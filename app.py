@@ -1,100 +1,179 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURATION & DESIGN SYSTEM
+# 1. KONFIGURACJA I STYL "VOGUE" (CSS)
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="ScentSational Discovery", layout="wide")
+st.set_page_config(page_title="ScentSational | Haute Couture", layout="wide")
 
 st.markdown("""
     <style>
-    /* Global Styling */
-    .stApp { background-color: #0E0E0E; color: #E0E0E0; }
-    h1, h2, h3 { color: #D4AF37 !important; font-family: 'Helvetica Neue', sans-serif; }
-    
-    /* Custom Metric Styling */
-    div[data-testid="stMetricValue"] { color: #D4AF37; font-size: 24px; }
-    div[data-testid="stMetricLabel"] { color: #888; }
-    div[data-testid="metric-container"] {
-        background-color: #161616;
-        border: 1px solid #333;
-        padding: 10px;
-        border-radius: 5px;
-        border-left: 3px solid #D4AF37;
+    /* IMPORT CZCIONEK: Playfair Display (Nagłówki) i Montserrat (Tekst) */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap');
+
+    /* TŁO: SATYNOWA CZERŃ (Gradient) */
+    .stApp {
+        background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+        color: #E0E0E0;
+        font-family: 'Montserrat', sans-serif;
     }
 
-    /* Bridge Button */
-    .bridge-button {
-        display: block;
-        background: linear-gradient(45deg, #B59024, #D4AF37);
-        color: #000;
+    /* NAGŁÓWKI - STYL VOGUE */
+    h1, h2, h3 {
+        font-family: 'Playfair Display', serif !important;
+        color: #C5A059 !important; /* Złoto */
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    
+    h1 { font-size: 3.5rem !important; margin-bottom: 0.5rem; text-transform: uppercase; }
+    h3 { font-size: 1.8rem !important; margin-top: 2rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+    /* ELEGANCKIE METRYKI (Metrics) */
+    div[data-testid="metric-container"] {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid #333;
+        border-top: 3px solid #C5A059;
         padding: 15px;
         text-align: center;
-        text-decoration: none;
-        font-weight: bold;
-        border-radius: 8px;
-        margin-top: 20px;
-        transition: transform 0.2s;
+        border-radius: 0px; /* Ostry, elegancki kąt */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
-    .bridge-button:hover {
-        transform: scale(1.02);
-        color: #000;
-        text-decoration: none;
+    div[data-testid="stMetricValue"] {
+        font-family: 'Playfair Display', serif;
+        color: #F0E68C;
+        font-size: 32px;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-family: 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: #888;
+        justify-content: center;
     }
 
-    /* Luxury Card for Results */
+    /* KARTA PERFUM (LUKSUSOWA RAMKA) */
     .perfume-card {
-        background-color: #161616;
-        border: 1px solid #333;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        transition: 0.3s;
+        background-color: rgba(20, 20, 20, 0.6); /* Półprzezroczystość */
+        border: 1px solid #444;
+        border-radius: 2px;
+        padding: 30px;
+        margin-bottom: 25px;
+        text-align: center;
+        transition: all 0.4s ease;
     }
     .perfume-card:hover {
-        border-color: #D4AF37;
-        background-color: #1A1A1A;
+        border-color: #C5A059; /* Złota poświata po najechaniu */
+        background-color: rgba(30, 30, 30, 0.9);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(197, 160, 89, 0.1);
     }
-    .perfume-title { color: #D4AF37; font-size: 1.3em; font-weight: bold; margin: 0; text-transform: uppercase; }
-    .perfume-brand { color: #BBB; font-weight: bold; font-size: 0.9em; margin-bottom: 5px; }
-    .perfume-sub { color: #888; font-size: 0.85em; margin-bottom: 10px; }
-    .perfume-notes { color: #E0E0E0; font-size: 0.9em; font-style: italic; border-top: 1px solid #333; padding-top: 10px; }
-    .highlight { color: #D4AF37; }
+    .perfume-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8em;
+        color: #fff;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+    }
+    .perfume-brand {
+        font-family: 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        color: #C5A059;
+        font-size: 0.8em;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    .perfume-notes {
+        font-size: 0.9em;
+        color: #ccc;
+        font-style: italic;
+        margin-bottom: 25px;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+    
+    /* LINK BUTTON (FRAGRANTICA) */
+    .fragrantica-link {
+        display: inline-block;
+        text-decoration: none;
+        color: #000;
+        background: linear-gradient(45deg, #B59024, #F0E68C, #B59024);
+        padding: 10px 25px;
+        font-size: 0.75em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: bold;
+        transition: 0.5s;
+        border-radius: 0px; /* Kwadratowe brzegi high-fashion */
+    }
+    .fragrantica-link:hover {
+        color: #fff;
+        background: #000;
+        border: 1px solid #C5A059;
+    }
+
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #080808;
+        border-right: 1px solid #222;
+    }
+    
+    /* Input Styling */
+    .stTextInput input {
+        background-color: transparent !important;
+        border: none;
+        border-bottom: 2px solid #333;
+        color: #C5A059 !important;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2em;
+        text-align: center;
+    }
+    .stTextInput input:focus {
+        border-bottom: 2px solid #C5A059;
+        box-shadow: none;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING (FIXED ENCODING: LATIN-1)
+# 2. DATA LOADING (BEZ UTRATY DANYCH)
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     
-    # 1. Load with Latin-1 Encoding and Semicolon Separator
     try:
+        # Wczytujemy z kodowaniem Latin-1 i separatorem ;
         df = pd.read_csv(
             file_path, 
             sep=';', 
-            encoding='latin1',  # <--- TO NAPRAWIA BŁĄD 0xe9
+            encoding='latin1',
             on_bad_lines='skip', 
             engine='python'
         )
     except Exception as e:
-        st.error(f"Error loading CSV: {e}")
+        st.error(f"Błąd wczytywania bazy: {e}")
         return None
 
-    # 2. Rename Columns to Standard Names
+    # Normalizacja nazw kolumn
     if 'Perfume' in df.columns:
         df = df.rename(columns={'Perfume': 'Name'})
+    
+    # Obsługa URL (jeśli kolumna nazywa się inaczej, np 'Link', kod spróbuje ją znaleźć)
+    if 'url' not in df.columns and 'link' in df.columns:
+         df = df.rename(columns={'link': 'url'})
 
-    # 3. Fix Ratings (Convert "1,42" to 1.42 float)
+    # Naprawa ocen (zamiana 1,42 na 1.42)
     if 'Rating Value' in df.columns:
-        # Replace comma with dot and convert to float
-        df['Rating Value'] = df['Rating Value'].astype(str).str.replace(',', '.').astype(float)
+        df['Rating Value'] = df['Rating Value'].astype(str).str.replace(',', '.').apply(pd.to_numeric, errors='coerce')
 
-    # 4. Create "Main Accords" by joining mainaccord1-5
+    # Łączenie nut w jedną kolumnę (zachowując te wiersze, które nie mają nut!)
     accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
     existing_accord_cols = [c for c in accord_cols if c in df.columns]
     
@@ -102,6 +181,8 @@ def load_data():
         df['Main Accords'] = df[existing_accord_cols].apply(
             lambda x: ', '.join(x.dropna().astype(str)), axis=1
         )
+        # Zamień puste stringi na "N/A"
+        df['Main Accords'] = df['Main Accords'].replace('', 'Notes unavailable')
     else:
         df['Main Accords'] = "Notes unavailable"
 
@@ -110,141 +191,155 @@ def load_data():
 def main():
     # --- SIDEBAR ---
     with st.sidebar:
-        st.markdown("## ⚜️ MENU")
-        st.info("Currently viewing: **Discovery Mode** (Lite)")
-        
+        st.markdown("## ⚜️ ATELIER")
+        st.info("Tryb: **Discovery Mode**")
         st.markdown("---")
-        st.markdown("### 🤖 Need AI Recommendations?")
-        st.write("Switch to our advanced AI engine to find perfumes based on deep similarity.")
+        st.write("Skorzystaj z AI, aby odkryć swoją olfaktoryczną sygnaturę.")
         st.markdown("""
-            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
-               🚀 LAUNCH AI CORE
+            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="
+                display: block; text-align: center; color: #000; background: #C5A059; padding: 10px; text-decoration: none; font-weight: bold; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;">
+               ✨ LAUNCH AI CORE
             </a>
         """, unsafe_allow_html=True)
 
     # --- HEADER ---
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.title("SCENTSATIONAL | INSIGHTS")
-        st.markdown("Interactive Market Analysis & Catalog Explorer")
+    st.title("SCENTSATIONAL")
+    st.markdown("<h3 style='border:none; margin-top:0;'>The Fragrance Intelligence Platform</h3>", unsafe_allow_html=True)
+    st.write("")
 
     df = load_data()
     
     if df is None:
         return
 
-    # --- TOP METRICS ---
-    st.markdown("### 📈 Database Overview")
+    # --- METRICS (ELEGANT ROW) ---
     m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Collection Size", f"{len(df):,}".replace(",", " "))
+    m2.metric("Designers", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-")
     
-    m1.metric("Total Perfumes", f"{len(df)}")
-    m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
-    
-    # Calculate trending accord
-    top_note = "N/A"
+    # Trending Accord Calculation
+    top_note = "-"
     if 'Main Accords' in df.columns:
         try:
-            all_notes = df['Main Accords'].astype(str).str.cat(sep=', ')
+            all_notes = df[df['Main Accords'] != 'Notes unavailable']['Main Accords'].astype(str).str.cat(sep=', ')
             from collections import Counter
-            note_list = [x.strip() for x in all_notes.split(',') if x.strip() != '']
-            most_common = Counter(note_list).most_common(1)
-            if most_common:
-                top_note = most_common[0][0]
+            note_list = [x.strip() for x in all_notes.split(',') if x.strip()]
+            if note_list:
+                top_note = Counter(note_list).most_common(1)[0][0].capitalize()
         except:
             pass
+    m3.metric("Trending Note", top_note)
     
-    m3.metric("Trending Accord", top_note)
-    
-    avg_rating = "N/A"
+    avg_rating = "-"
     if 'Rating Value' in df.columns:
         avg = df['Rating Value'].mean()
         avg_rating = f"{avg:.2f}"
-    m4.metric("Avg Rating", avg_rating)
+    m4.metric("Avg Score", avg_rating)
 
-    st.write("")
+    st.markdown("---")
     
     # --- TABS ---
-    tab_analytics, tab_explorer = st.tabs(["📊 LIVE ANALYTICS", "🔍 CATALOG EXPLORER"])
+    tab_analytics, tab_explorer = st.tabs(["📊 MARKET INSIGHTS", "🔎 CATALOGUE"])
 
-    # === TAB 1: ANALYTICS ===
+    # === TAB 1: ELEGANT ANALYTICS ===
     with tab_analytics:
-        st.markdown("### Market Trends")
         col_chart1, col_chart2 = st.columns(2)
         
         with col_chart1:
-            st.markdown("#### 🏆 Top Brands by Volume")
+            st.markdown("### Top Designers by Volume")
             if 'Brand' in df.columns:
                 top_brands = df['Brand'].value_counts().head(10).reset_index()
                 top_brands.columns = ['Brand', 'Count']
                 
-                fig = px.bar(top_brands, x='Count', y='Brand', orientation='h',
-                             color='Count', color_continuous_scale=['#806000', '#D4AF37'])
+                # Złoty wykres słupkowy
+                fig = go.Figure(go.Bar(
+                    x=top_brands['Count'],
+                    y=top_brands['Brand'],
+                    orientation='h',
+                    marker=dict(color='#C5A059', line=dict(color='#F0E68C', width=1))
+                ))
                 fig.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#E0E0E0', yaxis=dict(autorange="reversed"),
-                    margin=dict(l=0, r=0, t=0, b=0), height=350
+                    font=dict(family="Montserrat", color="#E0E0E0"),
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=0, r=0, t=30, b=0), height=400
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
         with col_chart2:
-            st.markdown("#### ⭐ Rating Distribution")
+            st.markdown("### Rating Distribution")
             if 'Rating Value' in df.columns:
-                fig2 = px.histogram(df, x='Rating Value', nbins=20,
-                                    color_discrete_sequence=['#D4AF37'])
+                # Grupujemy oceny, żeby wykres był czytelniejszy (zaokrąglenie do 0.5)
+                ratings = df['Rating Value'].dropna().apply(lambda x: round(x * 2) / 2)
+                rating_counts = ratings.value_counts().sort_index()
+                
+                fig2 = go.Figure(go.Bar(
+                    x=rating_counts.index,
+                    y=rating_counts.values,
+                    marker=dict(color='#C5A059', opacity=0.8)
+                ))
                 fig2.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#E0E0E0', margin=dict(l=0, r=0, t=0, b=0),
-                    height=350, xaxis_title="Rating (1-5)", yaxis_title="Count", bargap=0.1
+                    font=dict(family="Montserrat", color="#E0E0E0"),
+                    xaxis_title="Score (1-5)",
+                    margin=dict(l=0, r=0, t=30, b=0), height=400
                 )
                 st.plotly_chart(fig2, use_container_width=True)
 
-    # === TAB 2: EXPLORER ===
+    # === TAB 2: EXPLORER (VOGUE CARDS) ===
     with tab_explorer:
-        st.markdown("### 🔎 Browse Collection")
+        st.markdown("<div style='text-align: center; margin-bottom: 20px;'>Search the Archives</div>", unsafe_allow_html=True)
         
-        search_query = st.text_input("Search Collection:", placeholder="Type a brand (e.g. 'Xerjoff') or note (e.g. 'Rose')...")
+        search_query = st.text_input("", placeholder="Type a brand (e.g. Chanel) or note (e.g. Jasmine)...")
         
-        st.write("Quick Filters:")
-        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        # Filtry w jednej linii, wycentrowane
+        c1, c2, c3, c4, c5 = st.columns([1,2,2,2,1])
         filter_type = None
-        
-        if col_f1.button("🔥 High Rated (>4.5)"):
-            filter_type = "high_rated"
-        if col_f2.button("🌿 Woody Scents"):
-            search_query = "woody"
-        if col_f3.button("🪵 Fruity Scents"):
-            search_query = "fruity"
-            
-        st.divider()
+        with c2: 
+            if st.button("✨ Top Rated (>4.5)"): filter_type = "high_rated"
+        with c3:
+            if st.button("🪵 Woody"): search_query = "woody"
+        with c4:
+            if st.button("🌸 Floral"): search_query = "floral"
 
+        st.write("")
+
+        # Logika filtrowania (zachowawcza - nie usuwamy N/A jeśli nie trzeba)
         filtered_df = df.copy()
         
         if filter_type == "high_rated" and 'Rating Value' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
         
         if search_query:
+            # Szukamy wszędzie (case insensitive)
             mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
 
-        st.write(f"Found **{len(filtered_df)}** perfumes:")
+        st.markdown(f"<div style='text-align: center; color: #888; margin-bottom: 30px;'>Found {len(filtered_df)} olfactory signatures</div>", unsafe_allow_html=True)
         
-        # Display Cards
-        for index, row in filtered_df.head(50).iterrows():
+        # Wyświetlanie kart
+        for index, row in filtered_df.head(40).iterrows(): # Limit 40 dla płynności
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
-            notes = row.get('Main Accords', '')
+            notes = row.get('Main Accords', 'Notes unavailable')
             rating = row.get('Rating Value', 'N/A')
-            gender = row.get('Gender', 'Unisex')
+            url = row.get('url', '#') # Pobieramy link
+            
+            # Jeśli brak linku, ukrywamy przycisk, lub dajemy pusty
+            link_html = ""
+            if url and str(url).startswith('http'):
+                link_html = f'<a href="{url}" target="_blank" class="fragrantica-link">Odkryj na Fragrantica</a>'
             
             st.markdown(f"""
                 <div class="perfume-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <p class="perfume-title">{name}</p>
-                        <span style="color: #D4AF37; font-weight: bold; font-size: 1.1em;">⭐ {rating}</span>
+                    <div class="perfume-brand">{brand}</div>
+                    <div class="perfume-title">{name}</div>
+                    <div style="color: #C5A059; font-size: 1.2em; margin: 10px 0;">
+                        {'★' * int(float(rating) if isinstance(rating, (int, float)) else 0)} 
+                        <span style="font-size:0.8em; color:#666;">({rating})</span>
                     </div>
-                    <p class="perfume-brand">{brand}</p>
-                    <p class="perfume-sub">{gender}</p>
-                    <p class="perfume-notes">🎶 {notes}</p>
+                    <div class="perfume-notes">{notes}</div>
+                    {link_html}
                 </div>
             """, unsafe_allow_html=True)
 
