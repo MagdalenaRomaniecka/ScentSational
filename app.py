@@ -63,21 +63,39 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING & PROCESSING
+# 2. DATA LOADING & PROCESSING (Fixed Encoding)
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
+    file_path = 'scentsational_data.csv'
+    df = None
+    
+    # Próba 1: Standardowe UTF-8 (Nowoczesny format)
     try:
-        # Load data
-        df = pd.read_csv('scentsational_data.csv')
+        df = pd.read_csv(file_path)
+    except UnicodeDecodeError:
+        pass # Idziemy do planu B
         
-        # Ensure necessary columns exist for analytics
-        if 'Brand' not in df.columns and 'Brand_Clean' in df.columns:
-            df['Brand'] = df['Brand_Clean'] # Fallback
+    # Próba 2: Latin-1 (Format Excela/Windows) - to zazwyczaj naprawia błąd
+    if df is None:
+        try:
+            df = pd.read_csv(file_path, encoding='latin1')
+        except:
+            pass # Idziemy do planu C
+
+    # Próba 3: Ignorowanie błędów (Ostateczność)
+    if df is None:
+        try:
+            df = pd.read_csv(file_path, encoding='utf-8', encoding_errors='ignore')
+        except Exception as e:
+            st.error(f"Krytyczny błąd wczytywania danych: {e}")
+            return None
+
+    # Zabezpieczenie nazw kolumn (Ujednolicenie)
+    if 'Brand' not in df.columns and 'Brand_Clean' in df.columns:
+        df['Brand'] = df['Brand_Clean'] 
             
-        return df
-    except FileNotFoundError:
-        return None
+    return df
 
 def main():
     # --- SIDEBAR (THE BRIDGE) ---
@@ -103,7 +121,7 @@ def main():
     df = load_data()
     
     if df is None:
-        st.error("Data missing. Please ensure 'scentsational_data.csv' is in the repository.")
+        st.error("Data missing or corrupted. Please ensure 'scentsational_data.csv' is valid.")
         return
 
     # --- TOP METRICS ROW ---
@@ -111,7 +129,18 @@ def main():
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Perfumes", f"{len(df)}")
     m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
-    m3.metric("Top Note", "Oud" if len(df) > 10 else "Sample Mode") # Placeholder logic
+    # Logika dla najpopularniejszej nuty (prosta analiza tekstu)
+    top_note = "Oud" # Placeholder
+    if 'Main Accords' in df.columns:
+        try:
+            all_notes = df['Main Accords'].astype(str).str.cat(sep=', ')
+            from collections import Counter
+            most_common = Counter(x.strip() for x in all_notes.split(',')).most_common(1)
+            if most_common:
+                top_note = most_common[0][0]
+        except:
+            pass
+    m3.metric("Trending Note", top_note)
     m4.metric("Avg Rating", f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "N/A")
 
     st.write("")
@@ -178,8 +207,10 @@ def main():
         # 2. Quick Filters (Chips)
         st.write("Quick Filters:")
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+        filter_type = None
+        
         if col_f1.button("🔥 High Rated (>4.5)"):
-            search_query = "High_Rated_Trigger"
+            filter_type = "high_rated"
         if col_f2.button("🌿 Vetiver Scents"):
             search_query = "vetiver"
         if col_f3.button("🪵 Oud Scents"):
@@ -190,35 +221,18 @@ def main():
         # 3. Filtering Logic
         filtered_df = df.copy()
         
+        if filter_type == "high_rated":
+             if 'Rating Value' in filtered_df.columns:
+                filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
+        
         if search_query:
-            if search_query == "High_Rated_Trigger":
-                 if 'Rating Value' in filtered_df.columns:
-                    filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
-            else:
-                # Search across all columns
-                mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
-                filtered_df = filtered_df[mask]
+            # Search across all columns
+            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
+            filtered_df = filtered_df[mask]
 
         # 4. Display Results as CARDS (Not Table)
         st.write(f"Found **{len(filtered_df)}** perfumes:")
         
         # Show top 50 to avoid lag
         for index, row in filtered_df.head(50).iterrows():
-            brand = row.get('Brand', 'Unknown Brand')
-            name = row.get('Name', 'Unknown Name')
-            notes = row.get('Main Accords', 'Notes unavailable')
-            rating = row.get('Rating Value', 'N/A')
-            
-            st.markdown(f"""
-                <div class="perfume-card">
-                    <div style="display: flex; justify-content: space-between;">
-                        <p class="perfume-title">{name}</p>
-                        <span style="color: #D4AF37;">⭐ {rating}</span>
-                    </div>
-                    <p class="perfume-brand">{brand}</p>
-                    <p class="perfume-notes">🎶 {notes}</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
+            brand = row.get('Brand', 'Unknown Brand
