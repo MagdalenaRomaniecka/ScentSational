@@ -1,3 +1,22 @@
+To zrozumiałe, że te detale są frustrujące. Problem z nazwami typu "0 Absolute Suede" polega na tym, że poprzedni filtr usuwał nazwy będące tylko cyframi (np. "09"), ale przepuszczał te, które zaczynały się od cyfry, ale miały dalej tekst.
+
+Naprawimy to Agresywnym Czyszczeniem Tekstu (Regex) oraz usuniemy niebieski pasek, zastępując go złotą plakietką.
+
+Oto lista poprawek w tej wersji:
+
+Usuwanie Cyfr z Przodu: Używam specjalnego wzorca (regex), który mówi: "Jeśli nazwa lub marka zaczyna się od cyfr (np. 0, 001, 19), odetnij je". Dzięki temu "0 Absolute Suede" zmieni się w "Absolute Suede".
+
+Koniec z Niebieskim Paskiem: Usunąłem komendę st.info (która zawsze jest niebieska) i zastąpiłem ją ręcznie napisanym Złotym Banerem w HTML.
+
+Inteligentne Sortowanie: Lista wyszukiwania jest teraz sortowana alfabetycznie po wyczyszczeniu nazw, więc będzie wyglądać idealnie czysto.
+
+Oto Twój kod "Deep Clean & Gold Fix".
+
+💎 app.py – Wersja Czysta i Złota
+Skopiuj całość i podmień.
+
+Python
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -50,8 +69,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
     }
 
-    /* --- CUSTOM GOLD METRIC BOX (PANCERNE RAMKI) --- */
-    /* To omija system Streamlit i rysuje ramki "ręcznie" */
+    /* --- CUSTOM GOLD METRIC BOX --- */
     .gold-metric {
         border: 1px solid #D4AF37;
         background-color: rgba(255, 255, 255, 0.02);
@@ -76,6 +94,19 @@ st.markdown("""
         color: #F0E68C;
         margin: 0;
         line-height: 1;
+    }
+
+    /* --- SIDEBAR CUSTOM STATUS (ZASTĘPUJE NIEBIESKI) --- */
+    .status-box {
+        border: 1px solid #D4AF37;
+        background-color: rgba(212, 175, 55, 0.05);
+        color: #D4AF37;
+        padding: 15px;
+        text-align: center;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
     }
 
     /* --- SEARCH BAR --- */
@@ -167,19 +198,20 @@ def load_data():
     if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
     if 'url' not in df.columns and 'link' in df.columns: df = df.rename(columns={'link': 'url'})
     
-    # --- DEEP CLEANING (AGRESYWNE CZYSZCZENIE) ---
+    # --- DEEP CLEANING (REGEX) ---
     if 'Name' in df.columns:
         df['Name'] = df['Name'].astype(str).str.strip()
-        
-        # 1. Usuń myślniki
+        # 1. USUŃ CYFRY NA POCZĄTKU (np. "0 Absolute" -> "Absolute", "001 Orange" -> "Orange")
+        df['Name'] = df['Name'].str.replace(r'^\d+\s*', '', regex=True)
+        # 2. Usuń myślniki i sformatuj
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
+        # 3. Usuń bardzo krótkie nazwy (po wycięciu cyfr mogło zostać puste)
+        df = df[df['Name'].str.len() > 1]
         
-        # 2. Usuń nazwy krótsze niż 3 znaki (to usunie "0", "09", "1")
-        df = df[df['Name'].str.len() > 2]
-        
-        # 3. Usuń nazwy składające się tylko z cyfr i spacji
-        df = df[~df['Name'].str.match(r'^[\d\s]+$')]
-    
+    # Czyszczenie Marek (jeśli one też mają numery)
+    if 'Brand' in df.columns:
+        df['Brand'] = df['Brand'].astype(str).str.replace(r'^\d+\s*', '', regex=True)
+
     if 'Rating Value' in df.columns:
         df['Rating Value'] = df['Rating Value'].astype(str).str.replace(',', '.').apply(pd.to_numeric, errors='coerce')
 
@@ -199,7 +231,14 @@ def load_data():
 def main():
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
-        st.info("Discovery Mode Active")
+        
+        # --- ZŁOTY STATUS (ZAMIAST NIEBIESKIEGO) ---
+        st.markdown("""
+        <div class="status-box">
+            DISCOVERY MODE ACTIVE
+        </div>
+        """, unsafe_allow_html=True)
+        
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-top:30px; margin-bottom:10px;'>AI ENGINE</div>", unsafe_allow_html=True)
         st.write("Unlock the neural network to find scents based on chemical DNA.")
         st.markdown("""
@@ -229,7 +268,6 @@ def main():
     val3 = df['Primary Accord'].mode()[0].capitalize() if 'Primary Accord' in df.columns and not df['Primary Accord'].empty else "-"
     val4 = f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "-"
 
-    # Funkcja do rysowania złotego pudełka
     def gold_box(label, value):
         return f"""
         <div class="gold-metric">
@@ -284,7 +322,13 @@ def main():
     with tab_explore:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
-        search_options = sorted(list(set(df['Brand'].dropna().unique()) | set(df['Name'].dropna().unique())))
+        # --- CLEAN SEARCH LIST ---
+        # Pobieramy unikalne wartości, które zostały już wyczyszczone w load_data
+        unique_brands = set(df['Brand'].dropna().unique())
+        unique_names = set(df['Name'].dropna().unique())
+        # Łączymy i sortujemy
+        search_options = sorted(list(unique_brands | unique_names))
+        
         selected_search = st.selectbox(
             "Type to search...", options=search_options, index=None, 
             placeholder="Start typing a brand (e.g. Chanel) or perfume name...", label_visibility="collapsed"
@@ -299,6 +343,7 @@ def main():
 
         filtered_df = df.copy()
         if selected_search:
+            # Wyszukiwanie dokładne lub częściowe
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
             if not mask.any(): mask = filtered_df.astype(str).apply(lambda x: x.str.contains(selected_search, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
