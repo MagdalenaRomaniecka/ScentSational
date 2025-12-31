@@ -1,142 +1,148 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import os
 
 # -----------------------------------------------------------------------------
-# CONFIGURATION & DESIGN SYSTEM (Dark Luxury)
+# 1. CONFIGURATION & DESIGN SYSTEM (Dark Luxury)
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="ScentSational AI", layout="centered")
+st.set_page_config(page_title="ScentSational Discovery", layout="wide")
 
 st.markdown("""
     <style>
-    /* Global Theme */
+    /* Global Background */
     .stApp { background-color: #0E0E0E; color: #E0E0E0; }
     
     /* Typography */
-    h1, h2, h3 { color: #D4AF37 !important; font-family: 'Helvetica Neue', sans-serif; text-align: center; }
+    h1, h2, h3 { color: #D4AF37 !important; font-family: 'Helvetica Neue', sans-serif; }
     
-    /* Widgets */
-    .stSelectbox > div > div { background-color: #1A1A1A; color: #D4AF37; border: 1px solid #D4AF37; }
+    /* Metrics & Cards */
+    [data-testid="stMetricValue"] { color: #D4AF37; }
+    .css-1r6slb0 { background-color: #161616; border: 1px solid #333; }
     
-    /* Buttons */
-    .stButton > button { background-color: #D4AF37; color: #0E0E0E; border: none; width: 100%; font-weight: bold; }
-    .stButton > button:hover { background-color: #B59024; color: #FFFFFF; }
-    
-    /* Cards */
-    .perfume-card {
-        background-color: #161616; border: 1px solid #333; border-left: 3px solid #D4AF37;
-        padding: 20px; margin-bottom: 15px; border-radius: 5px;
-    }
-    
-    /* Expander Styling */
-    .streamlit-expanderHeader {
-        color: #D4AF37 !important;
+    /* The Bridge Button (Golden Link) */
+    .bridge-button {
+        display: inline-block;
+        background-color: #D4AF37;
+        color: #000000;
+        padding: 15px 30px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 18px;
         font-weight: bold;
-        border: 1px solid #333;
-        background-color: #161616;
+        border-radius: 5px;
+        border: 1px solid #B59024;
+        width: 100%;
+        margin-top: 20px;
+        transition: 0.3s;
     }
+    .bridge-button:hover {
+        background-color: #F4CF57;
+        color: #000000;
+        box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+    }
+    
+    /* Image Captions */
+    .caption { text-align: center; color: #888; font-style: italic; margin-top: 5px; }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# DATA ENGINE
+# 2. DATA LOADING (Lightweight - No AI Model)
 # -----------------------------------------------------------------------------
 @st.cache_data
-def load_resources():
+def load_data():
     try:
-        # 1. Load Data
         df = pd.read_csv('scentsational_data.csv')
-        similarity_matrix = np.load('hybrid_similarity.npy')
-        
-        # 2. Integrity Check
-        n_perfumes = len(df)
-        n_matrix_rows = similarity_matrix.shape[0]
-        
-        if n_perfumes != n_matrix_rows:
-            st.error(f"❌ CRITICAL DATA MISMATCH: CSV ({n_perfumes}) vs Matrix ({n_matrix_rows})")
-            return None, None
-
-        if 'Name' not in df.columns:
-            st.error("❌ MISSING COLUMN: 'Name'")
-            return None, None
-            
-        return df, similarity_matrix
-
-    except Exception as e:
-        st.error(f"❌ SYSTEM ERROR: {e}")
-        return None, None
-
-def get_recommendations(perfume_name, df, matrix, top_k=5):
-    try:
-        idx = df[df['Name'] == perfume_name].index[0]
-        sim_scores = list(enumerate(matrix[idx]))
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:top_k+1]
-        return df.iloc[[i[0] for i in sim_scores]]
-    except:
+        return df
+    except FileNotFoundError:
         return None
 
-# -----------------------------------------------------------------------------
-# MAIN INTERFACE
-# -----------------------------------------------------------------------------
 def main():
-    st.title("⚜️ SCENTSATIONAL")
-    st.markdown("<p style='text-align: center; color: #888; letter-spacing: 2px; margin-bottom: 30px;'>AI-POWERED FRAGRANCE CONCIERGE</p>", unsafe_allow_html=True)
+    # --- HEADER ---
+    col_logo, col_title = st.columns([1, 4])
+    with col_title:
+        st.title("⚜️ SCENTSATIONAL | DISCOVERY")
+        st.markdown("### Interactive Niche Perfume Analytics")
+
+    df = load_data()
     
-    df, similarity_matrix = load_resources()
+    if df is None:
+        st.error("Data file not found. Please upload 'scentsational_data.csv'.")
+        return
 
-    if df is not None:
-        available_perfumes = sorted(df['Name'].unique())
+    # --- THE BRIDGE (Sidebar) ---
+    with st.sidebar:
+        st.header("🤖 AI CONCIERGE")
+        st.info("Looking for personalized recommendations based on your favorite scent?")
+        # LINK DO HUGGING FACE (Tu wstawimy Twój link do Space'a, jak już go postawimy)
+        st.markdown("""
+            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
+               🚀 LAUNCH AI ENGINE
+            </a>
+        """, unsafe_allow_html=True)
+        st.write("")
+        st.markdown("---")
+        st.write("**Database Stats:**")
+        st.metric("Niche Perfumes", len(df))
+        st.metric("Unique Brands", df['Brand'].nunique() if 'Brand' in df.columns else 0)
+
+    # --- MAIN CONTENT TABS ---
+    tab1, tab2 = st.tabs(["📊 MARKET INSIGHTS", "🔍 CATALOG EXPLORER"])
+
+    # TAB 1: VISUAL ANALYTICS (Twoje Wykresy)
+    with tab1:
+        st.subheader("The DNA of Niche Perfumery")
+        st.write("Visualizing the most dominant notes and exclusive brands in our collection.")
         
-        col1, col2, col3 = st.columns([1, 6, 1])
-        with col2:
-            selected_perfume = st.selectbox("SELECT YOUR SIGNATURE SCENT:", options=available_perfumes)
-            st.write("")
-            search_btn = st.button("CURATE MY COLLECTION")
-
-        # --- RESULTS SECTION ---
-        if search_btn:
-            st.divider()
-            results = get_recommendations(selected_perfume, df, similarity_matrix)
-            
-            if results is not None:
-                for _, row in results.iterrows():
-                    brand = row.get('Brand', "Niche House")
-                    accords = row.get('Main Accords', "Exclusive Notes")
-                    st.markdown(f"""
-                        <div class="perfume-card">
-                            <h3 style="margin:0; color:#E0E0E0;">{row['Name']}</h3>
-                            <p style="color:#D4AF37; text-transform:uppercase; font-size:0.8em;">{brand}</p>
-                            <p style="color:#BBB; font-style:italic; font-size:0.9em;">{accords}</p>
-                        </div>
-                    """, unsafe_allow_html=True)
+        # Row 1: Wordcloud & Brands
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### ☁️ Olfactory Word Cloud")
+            if os.path.exists("wordcloud.jpg"):
+                st.image("wordcloud.jpg", use_container_width=True)
+                st.markdown("<p class='caption'>Most frequent fragrance notes analyzed from 5,000+ descriptions.</p>", unsafe_allow_html=True)
             else:
-                st.warning("No recommendations found.")
+                st.warning("Wordcloud image not found.")
 
-        # --- ANALYTICS SECTION (HIDDEN GEM) ---
-        st.write("")
-        st.write("")
-        st.write("")
-        with st.expander("📊 VIEW DATA ANALYTICS & INSIGHTS"):
-            st.markdown("### 🧬 The DNA of Niche Perfumery")
-            st.write("An analysis of over 5,000 niche fragrances to determine the most dominant olfactory profiles.")
+        with col2:
+            st.markdown("#### 🏆 Top Niche Brands")
+            if os.path.exists("brands.png"):
+                st.image("brands.png", use_container_width=True)
+                st.markdown("<p class='caption'>Leading houses by number of releases in the dataset.</p>", unsafe_allow_html=True)
+            else:
+                st.warning("Brands chart image not found.")
+
+        # Row 2: Notes Analysis (New Chart)
+        st.divider()
+        st.markdown("#### 🎵 Top 20 Olfactory Notes")
+        if os.path.exists("notes.png"):
+            st.image("notes.png", use_container_width=True)
+            st.markdown("<p class='caption'>A breakdown of the most popular ingredients in niche perfumery.</p>", unsafe_allow_html=True)
+        else:
+             st.warning("Notes chart image not found.")
+
+
+    # TAB 2: SIMPLE EXPLORER (Baza danych)
+    with tab2:
+        st.subheader("Browse the Collection")
+        
+        # Simple Search
+        search_term = st.text_input("Search by Name, Brand, or Note:", placeholder="e.g. Oud, Creed, Rose...")
+        
+        if search_term:
+            # Simple string matching
+            mask = df.astype(str).apply(lambda x: x.str.contains(search_term, case=False)).any(axis=1)
+            results = df[mask].head(20) # Limit to 20 to keep it fast
             
-            # Check if images exist before displaying
-            col_a, col_b = st.columns(2)
-            
-            with col_a:
-                if os.path.exists("brands.png"):
-                    st.image("brands.png", caption="Top 20 Niche Brands by Volume")
-                else:
-                    st.info("Brand analysis chart loading...")
-            
-            with col_b:
-                if os.path.exists("wordcloud.jpg"):
-                    st.image("wordcloud.jpg", caption="Most Common Notes (Olfactory Cloud)")
-                else:
-                    st.info("Wordcloud chart loading...")
-                    
-            st.caption("Data Source: Fragrantica Niche Collection | Analysis: Python (Pandas, Matplotlib, WordCloud)")
+            st.write(f"Found {len(results)} matches (showing top 20):")
+            st.dataframe(
+                results[['Name', 'Brand', 'Main Accords', 'Rating Value']],
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("Enter a keyword above to explore the database.")
 
 if __name__ == "__main__":
     main()
