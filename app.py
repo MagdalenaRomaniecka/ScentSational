@@ -1,3 +1,24 @@
+To świetne uwagi – "diabeł tkwi w szczegółach". 🖤 Zmieniamy proporcje i naprawiamy kolory.
+
+Oto co dokładnie poprawiam w kodzie:
+
+Odwrócone Proporcje (Big Brand):
+
+Marka (np. XERJOFF): Teraz będzie ogromna (1.8rem) i gruba. To ona ma dominować.
+
+Nazwa perfum: Będzie wyraźnie mniejsza (1.3rem) i lżejsza. Taka hierarchia jest typowa dla luksusowych katalogów.
+
+Naprawa Linku (Niebieski Kolor): Dodałem w CSS !important, żeby wymusić czarny kolor tekstu na złotym przycisku. Przeglądarka nie będzie już narzucać swojego niebieskiego koloru dla linków.
+
+Wyszukiwanie (Dlaczego "tylko marki"?): Wyszukiwarka działa i dla marek, i dla nazw, ALE ponieważ wyczyściliśmy nazwy z cyfr (np. "001 Somewhere" -> "Somewhere"), musisz wpisywać samą nazwę bez numerka. Lista podpowiedzi zawiera teraz czyste nazwy.
+
+Oto Twój finalny, dopieszczony kod.
+
+💎 app.py – Wersja "Brand Dominance & Color Fix"
+Skopiuj całą zawartość i nadpisz plik app.py.
+
+Python
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -77,7 +98,7 @@ st.markdown("""
         line-height: 1;
     }
 
-    /* --- SIDEBAR CUSTOM STATUS (REPLACES BLUE BOX) --- */
+    /* --- SIDEBAR STATUS --- */
     .status-box {
         border: 1px solid #D4AF37;
         background-color: rgba(212, 175, 55, 0.05);
@@ -97,10 +118,10 @@ st.markdown("""
         color: #D4AF37;
     }
     
-    /* --- PERFUME ROW --- */
+    /* --- PERFUME ROW (BRAND DOMINANCE) --- */
     .perfume-row {
         border-bottom: 1px solid #1a1a1a;
-        padding: 50px 0;
+        padding: 60px 0; /* Więcej oddechu */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -111,52 +132,66 @@ st.markdown("""
         background: radial-gradient(circle, rgba(212,175,55,0.03) 0%, transparent 70%);
         border-bottom: 1px solid #D4AF37;
     }
+    
+    /* MARKA - TERAZ JEST KRÓLOWĄ (WIELKA) */
     .row-brand {
         font-family: 'Lato', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 700;
+        font-size: 1.8rem; /* DUŻA */
+        font-weight: 900;  /* GRUBA */
         text-transform: uppercase;
-        letter-spacing: 4px;
+        letter-spacing: 5px;
         color: #D4AF37;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
+    
+    /* NAZWA - MNIEJSZA I SUBTELNA */
     .row-name {
         font-family: 'Playfair Display', serif;
-        font-size: 2.2rem;
+        font-size: 1.3rem; /* MNIEJSZA */
         color: #fff;
-        line-height: 1.2;
+        line-height: 1.4;
         margin-bottom: 20px;
         text-transform: capitalize; 
         font-weight: 400;
+        opacity: 0.9;
     }
+    
     .row-notes {
         font-family: 'Playfair Display', serif;
-        font-size: 1.1rem;
-        color: #ccc;
+        font-size: 1rem;
+        color: #888;
         font-style: italic;
         margin-bottom: 30px;
         max-width: 600px;
         line-height: 1.6;
     }
+    
+    /* LINK BUTTON - FORCE BLACK TEXT */
     .row-link {
-        text-decoration: none;
-        color: #000;
+        text-decoration: none !important;
+        color: #000 !important; /* WYMUSZONY CZARNY */
         background: linear-gradient(90deg, #C5A059, #D4AF37);
-        padding: 12px 30px;
-        font-size: 0.75rem;
+        padding: 14px 35px;
+        font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        font-weight: bold;
+        letter-spacing: 3px;
+        font-weight: 800;
         transition: 0.3s;
         display: inline-block;
         border: 1px solid #C5A059;
     }
     .row-link:hover {
         background: #000;
-        color: #D4AF37;
+        color: #D4AF37 !important;
         border: 1px solid #D4AF37;
-        box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
     }
+    /* Fix visited links appearing blue */
+    a.row-link:visited {
+        color: #000 !important;
+    }
+
     section[data-testid="stSidebar"] {
         background-color: #050505;
         border-right: 1px solid #222;
@@ -182,20 +217,14 @@ def load_data():
     # --- DEEP CLEANING (REGEX) ---
     if 'Name' in df.columns:
         df['Name'] = df['Name'].astype(str).str.strip()
-        
-        # 1. Remove leading digits (e.g. "0 Absolute" -> "Absolute", "001 Orange" -> "Orange")
+        # 1. Remove leading digits
         df['Name'] = df['Name'].str.replace(r'^\d+\s*', '', regex=True)
-        
-        # 2. Remove hyphens and format to Title Case
+        # 2. Format
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
-        
-        # 3. Remove very short names (artifacts)
+        # 3. Filter garbage
         df = df[df['Name'].str.len() > 1]
-        
-        # 4. Remove names that are just numbers/spaces
         df = df[~df['Name'].str.match(r'^[\d\s]+$')]
     
-    # Clean Brands as well if they have leading numbers
     if 'Brand' in df.columns:
         df['Brand'] = df['Brand'].astype(str).str.replace(r'^\d+\s*', '', regex=True)
 
@@ -218,13 +247,7 @@ def load_data():
 def main():
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
-        
-        # --- GOLD STATUS (REPLACES BLUE BOX) ---
-        st.markdown("""
-        <div class="status-box">
-            DISCOVERY MODE ACTIVE
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="status-box">DISCOVERY MODE ACTIVE</div>""", unsafe_allow_html=True)
         
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-top:30px; margin-bottom:10px;'>AI ENGINE</div>", unsafe_allow_html=True)
         st.write("Unlock the neural network to find scents based on chemical DNA.")
@@ -236,7 +259,7 @@ def main():
             </a>
         """, unsafe_allow_html=True)
 
-    # --- HEADER WITH GOLD FRAME ---
+    # --- HEADER ---
     st.markdown("""
         <div class="header-frame">
             <h1>SCENTSATIONAL</h1>
@@ -247,21 +270,15 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- CUSTOM HTML METRICS (GOLD FRAMES) ---
+    # --- METRICS ---
     c1, c2, c3, c4 = st.columns(4)
-    
     val1 = f"{len(df):,}".replace(",", " ")
     val2 = f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-"
     val3 = df['Primary Accord'].mode()[0].capitalize() if 'Primary Accord' in df.columns and not df['Primary Accord'].empty else "-"
     val4 = f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "-"
 
     def gold_box(label, value):
-        return f"""
-        <div class="gold-metric">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{value}</div>
-        </div>
-        """
+        return f"""<div class="gold-metric"><div class="metric-label">{label}</div><div class="metric-value">{value}</div></div>"""
 
     c1.markdown(gold_box("Collection Size", val1), unsafe_allow_html=True)
     c2.markdown(gold_box("Designers", val2), unsafe_allow_html=True)
@@ -309,16 +326,15 @@ def main():
     with tab_explore:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
-        # --- CLEAN SEARCH LIST ---
-        # 1. Get unique values
+        # --- SEARCH LIST GENERATION ---
         unique_brands = set(df['Brand'].dropna().unique())
         unique_names = set(df['Name'].dropna().unique())
-        # 2. Sort and combine
+        # Łączymy marki i nazwy w jedną listę wyszukiwania
         search_options = sorted(list(unique_brands | unique_names))
         
         selected_search = st.selectbox(
             "Type to search...", options=search_options, index=None, 
-            placeholder="Start typing a brand (e.g. Chanel) or perfume name...", label_visibility="collapsed"
+            placeholder="Type a brand (e.g. Xerjoff) or perfume name (e.g. Accento)...", label_visibility="collapsed"
         )
         
         col_f_space, col_f1, col_f2, col_f3, col_f_space2 = st.columns([2, 1, 1, 1, 2])
@@ -330,7 +346,7 @@ def main():
 
         filtered_df = df.copy()
         if selected_search:
-            # Search logic
+            # Wyszukiwanie w Markach LUB w Nazwach
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
             if not mask.any(): mask = filtered_df.astype(str).apply(lambda x: x.str.contains(selected_search, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
@@ -338,6 +354,7 @@ def main():
 
         st.markdown(f"<div style='text-align: center; color: #444; margin: 30px 0; letter-spacing: 1px;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
+        # --- ROWS ---
         for index, row in filtered_df.head(40).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
@@ -356,7 +373,7 @@ def main():
                 <div class="perfume-row">
                     <div class="row-brand">{brand}</div>
                     <div class="row-name">{name}</div>
-                    <div class="row-rating">Score: {rating_val:.2f} / 5.0</div>
+                    <div style="color:#666; font-size:0.8rem; margin-bottom:10px;">Score: {rating_val:.2f} / 5.0</div>
                     <div class="row-notes">{notes}</div>
                     {link_html}
                 </div>
