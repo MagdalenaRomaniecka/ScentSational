@@ -1,3 +1,5 @@
+Python
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -63,30 +65,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING & PROCESSING (Fixed Encoding)
+# 2. DATA LOADING & PROCESSING (ROBUST VERSION)
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     
-    # Attempt 1: Standard UTF-8
+    # Attempt 1: Standard load with bad lines skipping
     try:
-        df = pd.read_csv(file_path)
-    except UnicodeDecodeError:
+        df = pd.read_csv(file_path, on_bad_lines='skip', engine='python')
+    except Exception:
         pass 
         
-    # Attempt 2: Latin-1 (Excel/Windows format)
+    # Attempt 2: Latin-1 encoding with bad lines skipping
     if df is None:
         try:
-            df = pd.read_csv(file_path, encoding='latin1')
+            df = pd.read_csv(file_path, encoding='latin1', on_bad_lines='skip')
         except:
             pass 
 
-    # Attempt 3: Ignore errors as last resort
+    # Attempt 3: Last resort - ignore encoding errors and skip bad lines
     if df is None:
         try:
-            df = pd.read_csv(file_path, encoding='utf-8', encoding_errors='ignore')
+            df = pd.read_csv(file_path, encoding='utf-8', encoding_errors='ignore', on_bad_lines='skip')
         except Exception as e:
             st.error(f"Critical data loading error: {e}")
             return None
@@ -106,7 +108,6 @@ def main():
         st.markdown("---")
         st.markdown("### 🤖 Need AI Recommendations?")
         st.write("Switch to our advanced AI engine to find perfumes based on deep similarity.")
-        # Link to Hugging Face Space
         st.markdown("""
             <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" class="bridge-button">
                🚀 LAUNCH AI CORE
@@ -132,7 +133,7 @@ def main():
     m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
     
     # Logic for trending note
-    top_note = "Oud" # Default placeholder
+    top_note = "Oud" 
     if 'Main Accords' in df.columns:
         try:
             all_notes = df['Main Accords'].astype(str).str.cat(sep=', ')
@@ -144,7 +145,16 @@ def main():
             pass
             
     m3.metric("Trending Note", top_note)
-    m4.metric("Avg Rating", f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "N/A")
+    
+    # Safe rating calculation
+    avg_rating = "N/A"
+    if 'Rating Value' in df.columns:
+        try:
+            # Convert to numeric, forcing errors to NaN, then calculate mean
+            avg_rating = f"{pd.to_numeric(df['Rating Value'], errors='coerce').mean():.2f}"
+        except:
+            pass
+    m4.metric("Avg Rating", avg_rating)
 
     st.write("")
     
@@ -160,19 +170,17 @@ def main():
         with col_chart1:
             st.markdown("#### 🏆 Top Niche Brands")
             if 'Brand' in df.columns:
-                # Dynamic calculation
                 top_brands = df['Brand'].value_counts().head(10).reset_index()
                 top_brands.columns = ['Brand', 'Count']
                 
-                # Plotly Chart (Dark Theme)
                 fig = px.bar(top_brands, x='Count', y='Brand', orientation='h',
                              color='Count', color_continuous_scale=['#806000', '#D4AF37'])
                 
                 fig.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                    paper_bgcolor='rgba(0,0,0,0)', 
                     plot_bgcolor='rgba(0,0,0,0)',
                     font_color='#E0E0E0',
-                    yaxis=dict(autorange="reversed"), # Top brand on top
+                    yaxis=dict(autorange="reversed"),
                     margin=dict(l=0, r=0, t=0, b=0),
                     height=350,
                     xaxis_title="", yaxis_title=""
@@ -184,7 +192,11 @@ def main():
         with col_chart2:
             st.markdown("#### ⭐ Rating Distribution")
             if 'Rating Value' in df.columns:
-                fig2 = px.histogram(df, x='Rating Value', nbins=20,
+                # Ensure numeric for histogram
+                df_chart = df.copy()
+                df_chart['Rating Value'] = pd.to_numeric(df_chart['Rating Value'], errors='coerce')
+                
+                fig2 = px.histogram(df_chart, x='Rating Value', nbins=20,
                                     color_discrete_sequence=['#D4AF37'])
                 
                 fig2.update_layout(
@@ -204,10 +216,8 @@ def main():
     with tab_explorer:
         st.markdown("### 🔎 Browse Collection")
         
-        # 1. Search Bar
         search_query = st.text_input("Search Collection:", placeholder="Type a brand (e.g. 'Creed') or note (e.g. 'Vanilla')...")
         
-        # 2. Quick Filters (Chips)
         st.write("Quick Filters:")
         col_f1, col_f2, col_f3, col_f4 = st.columns(4)
         filter_type = None
@@ -221,22 +231,20 @@ def main():
         
         st.divider()
 
-        # 3. Filtering Logic
         filtered_df = df.copy()
         
+        # Safe filtering for high rated
         if filter_type == "high_rated":
              if 'Rating Value' in filtered_df.columns:
+                filtered_df['Rating Value'] = pd.to_numeric(filtered_df['Rating Value'], errors='coerce')
                 filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
         
         if search_query:
-            # Search across all columns
             mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
 
-        # 4. Display Results as CARDS (Not Table)
         st.write(f"Found **{len(filtered_df)}** perfumes:")
         
-        # Show top 50 to avoid lag
         for index, row in filtered_df.head(50).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
