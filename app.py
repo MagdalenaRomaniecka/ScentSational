@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import re
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURATION & LUXURY STYLE SYSTEM
+# 1. LUXURY STYLING
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
@@ -12,7 +13,7 @@ st.markdown("""
     /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
 
-    /* BACKGROUND - Deep Satin Black */
+    /* BACKGROUND */
     .stApp {
         background-color: #050505;
         background-image: radial-gradient(circle at 50% 0%, #151515 0%, #000000 80%);
@@ -20,7 +21,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* TYPOGRAPHY - HEADER */
+    /* TYPOGRAPHY */
     h1 {
         font-family: 'Playfair Display', serif !important;
         color: #D4AF37 !important;
@@ -49,46 +50,42 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
     }
 
-    /* --- GOLD FRAMES FOR METRICS (FORCED STYLE) --- */
-    div[data-testid="metric-container"] {
-        background-color: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid #D4AF37 !important; /* Gold Border */
-        padding: 20px !important;
-        border-radius: 2px !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    /* --- CUSTOM GOLD METRIC BOX (PANCERNE RAMKI) --- */
+    /* To omija system Streamlit i rysuje ramki "ręcznie" */
+    .gold-metric {
+        border: 1px solid #D4AF37;
+        background-color: rgba(255, 255, 255, 0.02);
+        padding: 20px;
         text-align: center;
-        transition: 0.3s;
-        margin-bottom: 10px;
+        border-radius: 2px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-    div[data-testid="metric-container"]:hover {
-        border-color: #F0E68C !important;
-        box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-        transform: translateY(-2px);
-    }
-    
-    /* Metric Value Styling */
-    div[data-testid="stMetricValue"] {
-        font-family: 'Playfair Display', serif;
-        color: #F0E68C !important;
-        font-size: 32px !important;
-    }
-    /* Metric Label Styling */
-    div[data-testid="stMetricLabel"] {
+    .metric-label {
         font-family: 'Lato', sans-serif;
+        font-size: 0.85rem;
         text-transform: uppercase;
-        font-size: 12px !important;
         letter-spacing: 2px;
-        color: #D4AF37 !important;
+        color: #D4AF37;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    .metric-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: #F0E68C;
+        margin: 0;
+        line-height: 1;
     }
 
-    /* --- SEARCH BAR CUSTOMIZATION --- */
+    /* --- SEARCH BAR --- */
     div[data-baseweb="select"] > div {
         background-color: rgba(255,255,255,0.05);
         border-color: #333;
         color: #D4AF37;
     }
     
-    /* --- PERFUME ROW (BALANCED TYPOGRAPHY) --- */
+    /* --- PERFUME ROW --- */
     .perfume-row {
         border-bottom: 1px solid #1a1a1a;
         padding: 50px 0;
@@ -102,39 +99,23 @@ st.markdown("""
         background: radial-gradient(circle, rgba(212,175,55,0.03) 0%, transparent 70%);
         border-bottom: 1px solid #D4AF37;
     }
-    
-    /* BRAND - Larger and clearer */
     .row-brand {
         font-family: 'Lato', sans-serif;
-        font-size: 1.1rem; 
+        font-size: 1.1rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 4px;
         color: #D4AF37;
         margin-bottom: 10px;
-        opacity: 1;
     }
-    
-    /* NAME - Elegant, not overpowering */
     .row-name {
         font-family: 'Playfair Display', serif;
-        font-size: 2.2rem; 
+        font-size: 2.2rem;
         color: #fff;
         line-height: 1.2;
         margin-bottom: 20px;
         text-transform: capitalize; 
         font-weight: 400;
-    }
-    
-    .row-rating {
-        font-family: 'Lato', sans-serif;
-        font-size: 0.9rem;
-        color: #888;
-        border: 1px solid #333;
-        padding: 5px 15px;
-        border-radius: 50px;
-        margin-bottom: 25px;
-        letter-spacing: 1px;
     }
     .row-notes {
         font-family: 'Playfair Display', serif;
@@ -145,8 +126,6 @@ st.markdown("""
         max-width: 600px;
         line-height: 1.6;
     }
-
-    /* LINK BUTTON */
     .row-link {
         text-decoration: none;
         color: #000;
@@ -166,8 +145,6 @@ st.markdown("""
         border: 1px solid #D4AF37;
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
     }
-
-    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background-color: #050505;
         border-right: 1px solid #222;
@@ -176,45 +153,42 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING & PROCESSING
+# 2. DATA ENGINE
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     try:
-        # Load with Latin-1 encoding and semicolon separator
         df = pd.read_csv(file_path, sep=';', encoding='latin1', on_bad_lines='skip', engine='python')
     except Exception:
         return None
 
-    # Rename Columns for consistency
     if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
     if 'url' not in df.columns and 'link' in df.columns: df = df.rename(columns={'link': 'url'})
     
-    # --- DATA CLEANING (Remove artifacts) ---
+    # --- DEEP CLEANING (AGRESYWNE CZYSZCZENIE) ---
     if 'Name' in df.columns:
-        # Ensure string type
-        df['Name'] = df['Name'].astype(str)
-        # Remove single characters or artifacts
-        df = df[df['Name'].str.len() > 1]
-        # Remove pure numbers (e.g., "09", "100")
-        df = df[~df['Name'].str.match(r'^\d+$')]
-        # Format names: remove hyphens, apply Title Case
+        df['Name'] = df['Name'].astype(str).str.strip()
+        
+        # 1. Usuń myślniki
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
+        
+        # 2. Usuń nazwy krótsze niż 3 znaki (to usunie "0", "09", "1")
+        df = df[df['Name'].str.len() > 2]
+        
+        # 3. Usuń nazwy składające się tylko z cyfr i spacji
+        df = df[~df['Name'].str.match(r'^[\d\s]+$')]
     
-    # Fix Ratings (Comma to Dot)
     if 'Rating Value' in df.columns:
         df['Rating Value'] = df['Rating Value'].astype(str).str.replace(',', '.').apply(pd.to_numeric, errors='coerce')
 
-    # Join Note Columns
     accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
     existing_accord_cols = [c for c in accord_cols if c in df.columns]
     
     if existing_accord_cols:
         df['Main Accords'] = df[existing_accord_cols].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         df['Main Accords'] = df['Main Accords'].replace('', 'N/A')
-        # Extract Primary Accord for charts
         df['Primary Accord'] = df[existing_accord_cols[0]].astype(str) if len(existing_accord_cols) > 0 else "Unknown"
     else:
         df['Main Accords'] = "N/A"
@@ -223,14 +197,11 @@ def load_data():
     return df
 
 def main():
-    # --- SIDEBAR ---
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
         st.info("Discovery Mode Active")
-        
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-top:30px; margin-bottom:10px;'>AI ENGINE</div>", unsafe_allow_html=True)
         st.write("Unlock the neural network to find scents based on chemical DNA.")
-        
         st.markdown("""
             <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="
                 display: block; text-align: center; border: 1px solid #D4AF37; color: #D4AF37; padding: 12px; text-decoration: none; 
@@ -250,25 +221,33 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- METRICS (GOLD FRAMES) ---
+    # --- CUSTOM HTML METRICS (PANCERNE ZŁOTE RAMKI) ---
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Collection Size", f"{len(df):,}".replace(",", " "))
-    c2.metric("Designers", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-")
     
-    top_note = "Woody"
-    if 'Primary Accord' in df.columns:
-        top_note = df['Primary Accord'].mode()[0].capitalize() if not df['Primary Accord'].empty else "-"
-    c3.metric("Trending Note", top_note)
-    
-    avg = df['Rating Value'].mean() if 'Rating Value' in df.columns else 0
-    c4.metric("Avg Score", f"{avg:.2f}")
+    val1 = f"{len(df):,}".replace(",", " ")
+    val2 = f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-"
+    val3 = df['Primary Accord'].mode()[0].capitalize() if 'Primary Accord' in df.columns and not df['Primary Accord'].empty else "-"
+    val4 = f"{df['Rating Value'].mean():.2f}" if 'Rating Value' in df.columns else "-"
+
+    # Funkcja do rysowania złotego pudełka
+    def gold_box(label, value):
+        return f"""
+        <div class="gold-metric">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value">{value}</div>
+        </div>
+        """
+
+    c1.markdown(gold_box("Collection Size", val1), unsafe_allow_html=True)
+    c2.markdown(gold_box("Designers", val2), unsafe_allow_html=True)
+    c3.markdown(gold_box("Trending Note", val3), unsafe_allow_html=True)
+    c4.markdown(gold_box("Avg Score", val4), unsafe_allow_html=True)
 
     st.write("")
 
     # --- TABS ---
     tab_insight, tab_explore = st.tabs(["MARKET INSIGHTS", "CATALOGUE"])
 
-    # === TAB 1: INSIGHTS ===
     with tab_insight:
         col1, col2 = st.columns(2)
         with col1:
@@ -302,18 +281,15 @@ def main():
                 )
                 st.plotly_chart(fig2, use_container_width=True)
 
-    # === TAB 2: EXPLORER ===
     with tab_explore:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
-        # Smart Search with Cleaned List
         search_options = sorted(list(set(df['Brand'].dropna().unique()) | set(df['Name'].dropna().unique())))
         selected_search = st.selectbox(
             "Type to search...", options=search_options, index=None, 
             placeholder="Start typing a brand (e.g. Chanel) or perfume name...", label_visibility="collapsed"
         )
         
-        # Filters
         col_f_space, col_f1, col_f2, col_f3, col_f_space2 = st.columns([2, 1, 1, 1, 2])
         filter_type = None
         with col_f1: 
@@ -321,7 +297,6 @@ def main():
         with col_f2: pass
         with col_f3: pass
 
-        # Filter Logic
         filtered_df = df.copy()
         if selected_search:
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
@@ -331,7 +306,6 @@ def main():
 
         st.markdown(f"<div style='text-align: center; color: #444; margin: 30px 0; letter-spacing: 1px;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
-        # --- DISPLAY PERFUME CARDS ---
         for index, row in filtered_df.head(40).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
