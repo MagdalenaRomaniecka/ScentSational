@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 
 # -----------------------------------------------------------------------------
 # CONFIGURATION & DESIGN SYSTEM (Dark Luxury)
@@ -27,55 +28,52 @@ st.markdown("""
         background-color: #161616; border: 1px solid #333; border-left: 3px solid #D4AF37;
         padding: 20px; margin-bottom: 15px; border-radius: 5px;
     }
+    
+    /* Expander Styling */
+    .streamlit-expanderHeader {
+        color: #D4AF37 !important;
+        font-weight: bold;
+        border: 1px solid #333;
+        background-color: #161616;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# DATA ENGINE WITH INTEGRITY CHECK
+# DATA ENGINE
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_resources():
     try:
-        # 1. Load Data (Expected filename: scentsational_data.csv)
+        # 1. Load Data
         df = pd.read_csv('scentsational_data.csv')
         similarity_matrix = np.load('hybrid_similarity.npy')
         
-        # 2. INTEGRITY CHECK (Prevents crashing if files mismatch)
+        # 2. Integrity Check
         n_perfumes = len(df)
         n_matrix_rows = similarity_matrix.shape[0]
         
         if n_perfumes != n_matrix_rows:
-            st.error(f"""
-                ❌ CRITICAL DATA MISMATCH:
-                - CSV File has {n_perfumes} perfumes.
-                - Similarity Matrix has {n_matrix_rows} rows.
-                ACTION REQUIRED: Please regenerate the .npy file using the current .csv file.
-            """)
+            st.error(f"❌ CRITICAL DATA MISMATCH: CSV ({n_perfumes}) vs Matrix ({n_matrix_rows})")
             return None, None
 
-        # 3. Column Check
         if 'Name' not in df.columns:
-            st.error("❌ MISSING COLUMN: The dataset must contain a 'Name' column.")
+            st.error("❌ MISSING COLUMN: 'Name'")
             return None, None
             
         return df, similarity_matrix
 
-    except FileNotFoundError as e:
-        st.error(f"❌ MISSING FILES: {e}")
-        return None, None
     except Exception as e:
-        st.error(f"❌ UNEXPECTED ERROR: {e}")
+        st.error(f"❌ SYSTEM ERROR: {e}")
         return None, None
 
 def get_recommendations(perfume_name, df, matrix, top_k=5):
     try:
         idx = df[df['Name'] == perfume_name].index[0]
         sim_scores = list(enumerate(matrix[idx]))
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1:top_k+1]
-        perfume_indices = [i[0] for i in sim_scores]
-        return df.iloc[perfume_indices]
-    except Exception:
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:top_k+1]
+        return df.iloc[[i[0] for i in sim_scores]]
+    except:
         return None
 
 # -----------------------------------------------------------------------------
@@ -87,8 +85,7 @@ def main():
     
     df, similarity_matrix = load_resources()
 
-    if df is not None and similarity_matrix is not None:
-        
+    if df is not None:
         available_perfumes = sorted(df['Name'].unique())
         
         col1, col2, col3 = st.columns([1, 6, 1])
@@ -97,6 +94,7 @@ def main():
             st.write("")
             search_btn = st.button("CURATE MY COLLECTION")
 
+        # --- RESULTS SECTION ---
         if search_btn:
             st.divider()
             results = get_recommendations(selected_perfume, df, similarity_matrix)
@@ -114,6 +112,31 @@ def main():
                     """, unsafe_allow_html=True)
             else:
                 st.warning("No recommendations found.")
+
+        # --- ANALYTICS SECTION (HIDDEN GEM) ---
+        st.write("")
+        st.write("")
+        st.write("")
+        with st.expander("📊 VIEW DATA ANALYTICS & INSIGHTS"):
+            st.markdown("### 🧬 The DNA of Niche Perfumery")
+            st.write("An analysis of over 5,000 niche fragrances to determine the most dominant olfactory profiles.")
+            
+            # Check if images exist before displaying
+            col_a, col_b = st.columns(2)
+            
+            with col_a:
+                if os.path.exists("brands.png"):
+                    st.image("brands.png", caption="Top 20 Niche Brands by Volume")
+                else:
+                    st.info("Brand analysis chart loading...")
+            
+            with col_b:
+                if os.path.exists("wordcloud.jpg"):
+                    st.image("wordcloud.jpg", caption="Most Common Notes (Olfactory Cloud)")
+                else:
+                    st.info("Wordcloud chart loading...")
+                    
+            st.caption("Data Source: Fragrantica Niche Collection | Analysis: Python (Pandas, Matplotlib, WordCloud)")
 
 if __name__ == "__main__":
     main()
