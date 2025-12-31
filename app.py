@@ -1,9 +1,8 @@
-import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
 # -----------------------------------------------------------------------------
-# 1. LUXURY STYLING
+# 1. CONFIGURATION & LUXURY STYLE SYSTEM
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
@@ -12,7 +11,7 @@ st.markdown("""
     /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
 
-    /* BACKGROUND */
+    /* BACKGROUND - Deep Satin Black */
     .stApp {
         background-color: #050505;
         background-image: radial-gradient(circle at 50% 0%, #151515 0%, #000000 80%);
@@ -40,9 +39,7 @@ st.markdown("""
         margin-bottom: 0;
     }
 
-    /* --- GOLD FRAMES (RAMKI) --- */
-    
-    /* 1. Ramka Nagłówka */
+    /* --- GOLD FRAME FOR HEADER --- */
     .header-frame {
         border: 1px solid #D4AF37;
         padding: 30px;
@@ -51,38 +48,39 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
     }
 
-    /* 2. Ramki Metryk (Liczby) - WYMUSZONE STYLE */
+    /* --- GOLD FRAMES FOR METRICS (FORCED STYLE) --- */
     div[data-testid="metric-container"] {
         background-color: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid #D4AF37 !important; /* Złota ramka */
+        border: 1px solid #D4AF37 !important; /* Gold Border */
         padding: 20px !important;
-        border-radius: 2px !important; /* Lekko ścięte rogi */
+        border-radius: 2px !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         text-align: center;
         transition: 0.3s;
         margin-bottom: 10px;
     }
     div[data-testid="metric-container"]:hover {
-        border-color: #F0E68C !important; /* Jaśniejsze złoto po najechaniu */
+        border-color: #F0E68C !important;
         box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         transform: translateY(-2px);
     }
     
-    /* Kolory wewnątrz metryk */
+    /* Metric Value Styling */
     div[data-testid="stMetricValue"] {
         font-family: 'Playfair Display', serif;
-        color: #F0E68C !important; /* Jasne złoto */
+        color: #F0E68C !important;
         font-size: 32px !important;
     }
+    /* Metric Label Styling */
     div[data-testid="stMetricLabel"] {
         font-family: 'Lato', sans-serif;
         text-transform: uppercase;
         font-size: 12px !important;
         letter-spacing: 2px;
-        color: #D4AF37 !important; /* Ciemniejsze złoto */
+        color: #D4AF37 !important;
     }
 
-    /* --- SEARCH BAR --- */
+    /* --- SEARCH BAR CUSTOMIZATION --- */
     div[data-baseweb="select"] > div {
         background-color: rgba(255,255,255,0.05);
         border-color: #333;
@@ -104,22 +102,22 @@ st.markdown("""
         border-bottom: 1px solid #D4AF37;
     }
     
-    /* MARKA - WIĘKSZA I WYRAŹNIEJSZA */
+    /* BRAND - Larger and clearer */
     .row-brand {
         font-family: 'Lato', sans-serif;
-        font-size: 1.1rem; /* Zwiększone z 0.75rem */
+        font-size: 1.1rem; 
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 4px;
         color: #D4AF37;
         margin-bottom: 10px;
-        opacity: 1; /* Pełna widoczność */
+        opacity: 1;
     }
     
-    /* NAZWA - MNIEJSZA I BARDZIEJ ELEGANCKA */
+    /* NAME - Elegant, not overpowering */
     .row-name {
         font-family: 'Playfair Display', serif;
-        font-size: 2.2rem; /* Zmniejszone z 3rem dla balansu */
+        font-size: 2.2rem; 
         color: #fff;
         line-height: 1.2;
         margin-bottom: 20px;
@@ -177,42 +175,45 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA ENGINE (SMART CLEANER & FILTER)
+# 2. DATA LOADING & PROCESSING
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     try:
+        # Load with Latin-1 encoding and semicolon separator
         df = pd.read_csv(file_path, sep=';', encoding='latin1', on_bad_lines='skip', engine='python')
     except Exception:
         return None
 
-    # Rename Columns
+    # Rename Columns for consistency
     if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
     if 'url' not in df.columns and 'link' in df.columns: df = df.rename(columns={'link': 'url'})
     
-    # --- DATA CLEANING (Usuwanie śmieci typu "0", "09") ---
+    # --- DATA CLEANING (Remove artifacts) ---
     if 'Name' in df.columns:
-        # 1. Zamień na tekst
+        # Ensure string type
         df['Name'] = df['Name'].astype(str)
-        # 2. Usuń nazwy krótsze niż 2 znaki (np "0")
+        # Remove single characters or artifacts
         df = df[df['Name'].str.len() > 1]
-        # 3. Usuń nazwy, które są samymi cyframi (np "09", "100")
+        # Remove pure numbers (e.g., "09", "100")
         df = df[~df['Name'].str.match(r'^\d+$')]
-        # 4. Formatowanie (usuwanie myślników)
+        # Format names: remove hyphens, apply Title Case
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
     
-    # Fix Ratings
+    # Fix Ratings (Comma to Dot)
     if 'Rating Value' in df.columns:
         df['Rating Value'] = df['Rating Value'].astype(str).str.replace(',', '.').apply(pd.to_numeric, errors='coerce')
 
-    # Join Notes
+    # Join Note Columns
     accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
     existing_accord_cols = [c for c in accord_cols if c in df.columns]
+    
     if existing_accord_cols:
         df['Main Accords'] = df[existing_accord_cols].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         df['Main Accords'] = df['Main Accords'].replace('', 'N/A')
+        # Extract Primary Accord for charts
         df['Primary Accord'] = df[existing_accord_cols[0]].astype(str) if len(existing_accord_cols) > 0 else "Unknown"
     else:
         df['Main Accords'] = "N/A"
@@ -237,7 +238,7 @@ def main():
             </a>
         """, unsafe_allow_html=True)
 
-    # --- HEADER FRAME (GOLD BOX) ---
+    # --- HEADER WITH GOLD FRAME ---
     st.markdown("""
         <div class="header-frame">
             <h1>SCENTSATIONAL</h1>
@@ -248,7 +249,7 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- METRICS (GOLD BOXES - FORCED STYLE) ---
+    # --- METRICS (GOLD FRAMES) ---
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Collection Size", f"{len(df):,}".replace(",", " "))
     c2.metric("Designers", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-")
@@ -304,13 +305,14 @@ def main():
     with tab_explore:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
-        # Search List - Cleaned
+        # Smart Search with Cleaned List
         search_options = sorted(list(set(df['Brand'].dropna().unique()) | set(df['Name'].dropna().unique())))
         selected_search = st.selectbox(
             "Type to search...", options=search_options, index=None, 
             placeholder="Start typing a brand (e.g. Chanel) or perfume name...", label_visibility="collapsed"
         )
         
+        # Filters
         col_f_space, col_f1, col_f2, col_f3, col_f_space2 = st.columns([2, 1, 1, 1, 2])
         filter_type = None
         with col_f1: 
@@ -318,6 +320,7 @@ def main():
         with col_f2: pass
         with col_f3: pass
 
+        # Filter Logic
         filtered_df = df.copy()
         if selected_search:
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
@@ -327,7 +330,7 @@ def main():
 
         st.markdown(f"<div style='text-align: center; color: #444; margin: 30px 0; letter-spacing: 1px;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
-        # ROWS - BALANCED TYPOGRAPHY
+        # --- DISPLAY PERFUME CARDS ---
         for index, row in filtered_df.head(40).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
