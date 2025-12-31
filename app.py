@@ -1,29 +1,10 @@
-To zrozumiałe, że te detale są frustrujące. Problem z nazwami typu "0 Absolute Suede" polega na tym, że poprzedni filtr usuwał nazwy będące tylko cyframi (np. "09"), ale przepuszczał te, które zaczynały się od cyfry, ale miały dalej tekst.
-
-Naprawimy to Agresywnym Czyszczeniem Tekstu (Regex) oraz usuniemy niebieski pasek, zastępując go złotą plakietką.
-
-Oto lista poprawek w tej wersji:
-
-Usuwanie Cyfr z Przodu: Używam specjalnego wzorca (regex), który mówi: "Jeśli nazwa lub marka zaczyna się od cyfr (np. 0, 001, 19), odetnij je". Dzięki temu "0 Absolute Suede" zmieni się w "Absolute Suede".
-
-Koniec z Niebieskim Paskiem: Usunąłem komendę st.info (która zawsze jest niebieska) i zastąpiłem ją ręcznie napisanym Złotym Banerem w HTML.
-
-Inteligentne Sortowanie: Lista wyszukiwania jest teraz sortowana alfabetycznie po wyczyszczeniu nazw, więc będzie wyglądać idealnie czysto.
-
-Oto Twój kod "Deep Clean & Gold Fix".
-
-💎 app.py – Wersja Czysta i Złota
-Skopiuj całość i podmień.
-
-Python
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import re
 
 # -----------------------------------------------------------------------------
-# 1. LUXURY STYLING
+# 1. LUXURY STYLING & CONFIGURATION
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
@@ -40,7 +21,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* TYPOGRAPHY */
+    /* TYPOGRAPHY - HEADER */
     h1 {
         font-family: 'Playfair Display', serif !important;
         color: #D4AF37 !important;
@@ -96,7 +77,7 @@ st.markdown("""
         line-height: 1;
     }
 
-    /* --- SIDEBAR CUSTOM STATUS (ZASTĘPUJE NIEBIESKI) --- */
+    /* --- SIDEBAR CUSTOM STATUS (REPLACES BLUE BOX) --- */
     .status-box {
         border: 1px solid #D4AF37;
         background-color: rgba(212, 175, 55, 0.05);
@@ -201,14 +182,20 @@ def load_data():
     # --- DEEP CLEANING (REGEX) ---
     if 'Name' in df.columns:
         df['Name'] = df['Name'].astype(str).str.strip()
-        # 1. USUŃ CYFRY NA POCZĄTKU (np. "0 Absolute" -> "Absolute", "001 Orange" -> "Orange")
+        
+        # 1. Remove leading digits (e.g. "0 Absolute" -> "Absolute", "001 Orange" -> "Orange")
         df['Name'] = df['Name'].str.replace(r'^\d+\s*', '', regex=True)
-        # 2. Usuń myślniki i sformatuj
+        
+        # 2. Remove hyphens and format to Title Case
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
-        # 3. Usuń bardzo krótkie nazwy (po wycięciu cyfr mogło zostać puste)
+        
+        # 3. Remove very short names (artifacts)
         df = df[df['Name'].str.len() > 1]
         
-    # Czyszczenie Marek (jeśli one też mają numery)
+        # 4. Remove names that are just numbers/spaces
+        df = df[~df['Name'].str.match(r'^[\d\s]+$')]
+    
+    # Clean Brands as well if they have leading numbers
     if 'Brand' in df.columns:
         df['Brand'] = df['Brand'].astype(str).str.replace(r'^\d+\s*', '', regex=True)
 
@@ -232,7 +219,7 @@ def main():
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
         
-        # --- ZŁOTY STATUS (ZAMIAST NIEBIESKIEGO) ---
+        # --- GOLD STATUS (REPLACES BLUE BOX) ---
         st.markdown("""
         <div class="status-box">
             DISCOVERY MODE ACTIVE
@@ -260,7 +247,7 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- CUSTOM HTML METRICS (PANCERNE ZŁOTE RAMKI) ---
+    # --- CUSTOM HTML METRICS (GOLD FRAMES) ---
     c1, c2, c3, c4 = st.columns(4)
     
     val1 = f"{len(df):,}".replace(",", " ")
@@ -323,10 +310,10 @@ def main():
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
         # --- CLEAN SEARCH LIST ---
-        # Pobieramy unikalne wartości, które zostały już wyczyszczone w load_data
+        # 1. Get unique values
         unique_brands = set(df['Brand'].dropna().unique())
         unique_names = set(df['Name'].dropna().unique())
-        # Łączymy i sortujemy
+        # 2. Sort and combine
         search_options = sorted(list(unique_brands | unique_names))
         
         selected_search = st.selectbox(
@@ -343,7 +330,7 @@ def main():
 
         filtered_df = df.copy()
         if selected_search:
-            # Wyszukiwanie dokładne lub częściowe
+            # Search logic
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
             if not mask.any(): mask = filtered_df.astype(str).apply(lambda x: x.str.contains(selected_search, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
