@@ -65,22 +65,27 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. DATA LOADING (CUSTOMIZED FOR YOUR CSV)
+# 2. DATA LOADING (FIXED ENCODING: LATIN-1)
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
     df = None
     
-    # 1. Load with Semicolon Separator (Crucial for your file)
+    # 1. Load with Latin-1 Encoding and Semicolon Separator
     try:
-        df = pd.read_csv(file_path, sep=';', on_bad_lines='skip', engine='python')
+        df = pd.read_csv(
+            file_path, 
+            sep=';', 
+            encoding='latin1',  # <--- TO NAPRAWIA BŁĄD 0xe9
+            on_bad_lines='skip', 
+            engine='python'
+        )
     except Exception as e:
         st.error(f"Error loading CSV: {e}")
         return None
 
     # 2. Rename Columns to Standard Names
-    # Your file has 'Perfume' -> We want 'Name'
     if 'Perfume' in df.columns:
         df = df.rename(columns={'Perfume': 'Name'})
 
@@ -91,11 +96,9 @@ def load_data():
 
     # 4. Create "Main Accords" by joining mainaccord1-5
     accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
-    # Check which of these actually exist in dataframe
     existing_accord_cols = [c for c in accord_cols if c in df.columns]
     
     if existing_accord_cols:
-        # Join them with a comma, ignoring empty values
         df['Main Accords'] = df[existing_accord_cols].apply(
             lambda x: ', '.join(x.dropna().astype(str)), axis=1
         )
@@ -137,13 +140,12 @@ def main():
     m1.metric("Total Perfumes", f"{len(df)}")
     m2.metric("Unique Brands", f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "N/A")
     
-    # Calculate trending accord from the new combined column
+    # Calculate trending accord
     top_note = "N/A"
     if 'Main Accords' in df.columns:
         try:
             all_notes = df['Main Accords'].astype(str).str.cat(sep=', ')
             from collections import Counter
-            # Split by comma and strip whitespace
             note_list = [x.strip() for x in all_notes.split(',') if x.strip() != '']
             most_common = Counter(note_list).most_common(1)
             if most_common:
