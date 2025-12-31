@@ -1,24 +1,3 @@
-To świetne uwagi – "diabeł tkwi w szczegółach". 🖤 Zmieniamy proporcje i naprawiamy kolory.
-
-Oto co dokładnie poprawiam w kodzie:
-
-Odwrócone Proporcje (Big Brand):
-
-Marka (np. XERJOFF): Teraz będzie ogromna (1.8rem) i gruba. To ona ma dominować.
-
-Nazwa perfum: Będzie wyraźnie mniejsza (1.3rem) i lżejsza. Taka hierarchia jest typowa dla luksusowych katalogów.
-
-Naprawa Linku (Niebieski Kolor): Dodałem w CSS !important, żeby wymusić czarny kolor tekstu na złotym przycisku. Przeglądarka nie będzie już narzucać swojego niebieskiego koloru dla linków.
-
-Wyszukiwanie (Dlaczego "tylko marki"?): Wyszukiwarka działa i dla marek, i dla nazw, ALE ponieważ wyczyściliśmy nazwy z cyfr (np. "001 Somewhere" -> "Somewhere"), musisz wpisywać samą nazwę bez numerka. Lista podpowiedzi zawiera teraz czyste nazwy.
-
-Oto Twój finalny, dopieszczony kod.
-
-💎 app.py – Wersja "Brand Dominance & Color Fix"
-Skopiuj całą zawartość i nadpisz plik app.py.
-
-Python
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -121,7 +100,7 @@ st.markdown("""
     /* --- PERFUME ROW (BRAND DOMINANCE) --- */
     .perfume-row {
         border-bottom: 1px solid #1a1a1a;
-        padding: 60px 0; /* Więcej oddechu */
+        padding: 60px 0;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -133,11 +112,11 @@ st.markdown("""
         border-bottom: 1px solid #D4AF37;
     }
     
-    /* MARKA - TERAZ JEST KRÓLOWĄ (WIELKA) */
+    /* BRAND - HUGE */
     .row-brand {
         font-family: 'Lato', sans-serif;
-        font-size: 1.8rem; /* DUŻA */
-        font-weight: 900;  /* GRUBA */
+        font-size: 1.8rem; 
+        font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 5px;
         color: #D4AF37;
@@ -145,10 +124,10 @@ st.markdown("""
         text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
     
-    /* NAZWA - MNIEJSZA I SUBTELNA */
+    /* NAME - SMALLER */
     .row-name {
         font-family: 'Playfair Display', serif;
-        font-size: 1.3rem; /* MNIEJSZA */
+        font-size: 1.3rem;
         color: #fff;
         line-height: 1.4;
         margin-bottom: 20px;
@@ -170,7 +149,7 @@ st.markdown("""
     /* LINK BUTTON - FORCE BLACK TEXT */
     .row-link {
         text-decoration: none !important;
-        color: #000 !important; /* WYMUSZONY CZARNY */
+        color: #000 !important;
         background: linear-gradient(90deg, #C5A059, #D4AF37);
         padding: 14px 35px;
         font-size: 0.7rem;
@@ -187,7 +166,6 @@ st.markdown("""
         border: 1px solid #D4AF37;
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
     }
-    /* Fix visited links appearing blue */
     a.row-link:visited {
         color: #000 !important;
     }
@@ -329,7 +307,6 @@ def main():
         # --- SEARCH LIST GENERATION ---
         unique_brands = set(df['Brand'].dropna().unique())
         unique_names = set(df['Name'].dropna().unique())
-        # Łączymy marki i nazwy w jedną listę wyszukiwania
         search_options = sorted(list(unique_brands | unique_names))
         
         selected_search = st.selectbox(
@@ -346,7 +323,6 @@ def main():
 
         filtered_df = df.copy()
         if selected_search:
-            # Wyszukiwanie w Markach LUB w Nazwach
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
             if not mask.any(): mask = filtered_df.astype(str).apply(lambda x: x.str.contains(selected_search, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
