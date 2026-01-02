@@ -63,16 +63,15 @@ We mapped the frequency of primary accords across the database. As shown below, 
 
 ## 📂 Project Structure
 
-```text
-ScentSational/
-├── assets/                  # Static assets (Charts, Images)
-│   └── olfactory_landscape.png
-├── app.py                   # Main Application (Atelier Dashboard)
-├── scentsational_data.csv   # Processed Dataset (Source of Truth)
-├── requirements.txt         # Dependency Management
-└── README.md                # Documentation
+    ScentSational/
+    ├── assets/                  # Static assets (Charts, Images)
+    │   └── olfactory_landscape.png
+    ├── app.py                   # Main Application (Atelier Dashboard)
+    ├── scentsational_data.csv   # Processed Dataset (Source of Truth)
+    ├── requirements.txt         # Dependency Management
+    └── README.md                # Documentation
 
-
+<br>
 
 ---
 
