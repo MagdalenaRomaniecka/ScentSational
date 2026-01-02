@@ -1,59 +1,63 @@
-# ScentSational: AI Perfume Concierge
+<div align="center">
 
-**A "Dark Luxury" AI-powered recommendation engine helping users discover their signature scent.**
+# ✨ ScentSational | Atelier
+### The Dark Luxury Fragrance Intelligence Platform
 
-> "Scent is the brother of breath."
+![Python](https://img.shields.io/badge/Python-3.9%2B-FFD700?style=for-the-badge&logo=python&logoColor=black)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-### 🎯 Project Goal
-To eliminate the overwhelming complexity of choosing a perfume by using Artificial Intelligence. Unlike traditional filters, ScentSational uses Natural Language Processing (NLP) and image embedding logic to understand the *vibe* of a fragrance, acting as a personal digital concierge.
+<p align="center">
+  <br>
+  <i>"Scent is the brother of breath."</i>
+  <br>
+</p>
 
----
-
-## 📊 Data Insights (Exploratory Data Analysis)
-
-Before training the AI model, we analyzed the underlying structure of the `perfumes_dataset.csv`.
-
-### 1. The Olfactory Landscape
-An analysis of the most dominant main accords present in the dataset. Citrus, Woody, and Fruity notes dominate the landscape.
-
-![Olfactory Landscape Chart](assets/olfactory_landscape.png)
-
-### 2. Top Designers by Volume
-A view of the fragrance houses with the highest number of entries in our database.
-
-![Top Designers Chart](assets/top_designers.png)
+</div>
 
 ---
 
-## 📚 Data Source
-The application is powered by a curated dataset (`perfumes_dataset.csv`) specifically processed for this project.
-* **Source:** Consolidated data aggregating olfactory notes, popularity ratings, and visual assets (images) from public fragrance databases.
-* **Preprocessing:** The raw data underwent rigorous cleaning and feature engineering to make it suitable for NLP vectorization (SBERT).
+## 💎 Project Overview
+
+**ScentSational** is not just a database; it is a digital concierge designed for the modern connoisseur. Moving away from cluttered interfaces, this project implements a **"Dark Luxury" design system** to provide a seamless, high-end user experience for discovering fragrances.
+
+The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering curated discovery modes in a mobile-responsive environment.
 
 ---
 
-## 🧠 The AI Engine (How It Works)
+## 🚀 Key Features
 
-The recommendation system utilizes a **Hybrid Similarity Approach**, combining textual analysis with visual cues.
-
-1.  **Vectorization**:
-    * **SBERT & TF-IDF**: We utilize Sentence-BERT to generate dense vector embeddings for perfume descriptions and accords.
-    * **Image Embeddings**: Visual features of perfume bottles are mapped into the same vector space.
-2.  **Cosine Similarity**: The core logic calculates the angular distance between the user's input "hero" perfume and the rest of the database.
-3.  **Optimization**: Heavy matrix calculations are pre-computed and stored in `hybrid_similarity.npy` for real-time performance.
+* **📱 Mobile-First Design:** A fully responsive interface where layouts (columns, images, typography) adapt fluidly between Desktop and Mobile devices.
+* **🔍 Smart Discovery Engine:** Advanced filtering logic that allows users to search by Brand, Name, or Olfactory profile using fuzzy matching.
+* **📊 Market Intelligence:** Interactive dashboards powered by Plotly to visualize trends in the fragrance industry.
+* **🛡️ Robust Data Pipeline:** Custom CSV parsing engine capable of handling various delimiters and encoding standards automatically.
 
 ---
 
-## 🛠️ Tech Stack
+## 📊 Analytics & Insights
 
-* **Language**: Python 3.9+
-* **Framework**: Streamlit (with Custom CSS for "Dark Luxury" UI)
-* **AI & Machine Learning**:
-    * Sentence-Transformers (SBERT)
-    * Scikit-learn (Cosine Similarity, TF-IDF)
-    * NumPy (Matrix operations)
-* **Data Manipulation**: Pandas
-* **Visualization**: Plotly (used for EDA charts shown above)
+Before deployment, the underlying dataset (`scentsational_data.csv`) underwent rigorous Exploratory Data Analysis (EDA).
+
+### The Olfactory Landscape
+We mapped the frequency of primary accords across the database. As shown below, the market is currently dominated by **Citrus, Woody, and Fruity** profiles, indicating a consumer shift towards fresh and grounded scents.
+
+<div align="center">
+  <img src="assets/olfactory_landscape.png" alt="Olfactory Landscape Chart" width="800">
+  <p><i>Figure 1: Distribution of dominant olfactory accords in the curated dataset.</i></p>
+</div>
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Core Logic** | `Python 3.9+` | Backend processing and logic control. |
+| **Frontend** | `Streamlit` | Web framework with custom CSS injection for "Dark Mode". |
+| **Data Eng** | `Pandas` | Data cleaning, regex standardization, and manipulation. |
+| **Viz** | `Plotly` | Interactive charts without static modebars. |
+| **Deployment** | `Streamlit Cloud` | CI/CD pipeline integrated with GitHub. |
 
 ---
 
@@ -61,11 +65,52 @@ The recommendation system utilizes a **Hybrid Similarity Approach**, combining t
 
 ```text
 ScentSational/
-├── assets/                  # Images for README and UI
-│   ├── olfactory_landscape.png
-│   └── top_designers.png
-├── app.py                   # Main Streamlit application logic
-├── perfumes_dataset.csv     # Primary dataset (Source of Truth)
-├── hybrid_similarity.npy    # Pre-calculated AI model weights
-├── requirements.txt         # Python dependencies
-└── README.md                # Project documentation
+├── assets/                  # Static assets (Charts, Images)
+│   └── olfactory_landscape.png
+├── app.py                   # Main Application (Atelier Dashboard)
+├── scentsational_data.csv   # Processed Dataset (Source of Truth)
+├── requirements.txt         # Dependency Management
+└── README.md                # Documentation
+
+
+
+---
+
+## ⚖️ Data Source & Licensing
+
+### 📚 Data Origin
+The application is powered by a curated dataset (`scentsational_data.csv`), rigorously processed for this portfolio.
+* **Aggregated Sources:** Consolidated olfactory notes, popularity ratings, and visual assets from public fragrance databases.
+* **Preprocessing:** Raw data underwent regex standardization to ensure consistency in brand names and accords.
+
+### 📜 License
+This project is released under the **MIT License**.
+> *Permission is hereby granted, free of charge, to any person obtaining a copy of this software...*
+
+You are free to use, modify, and distribute this software, provided that the copyright notice is preserved. See the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+## 👩‍💻 Author
+
+**Magdalena Romaniecka**
+<br>
+*Data Engineer & Web Analytics Specialist*
+
+<br>
+
+> *"Building bridges between raw data and luxury user experiences."*
+
+<br>
+
+[![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?style=flat&logo=github&logoColor=white)](https://github.com/MagdalenaRomaniecka)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/magdalena-romaniecka/)
+
+<br>
+<hr width="50%">
+
+Copyright © 2026 Magdalena Romaniecka. All Rights Reserved.
+
+</div>
