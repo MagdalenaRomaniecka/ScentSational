@@ -22,7 +22,7 @@
 
 ## 💎 Project Overview
 
-**ScentSational** is not just a database; it is a digital concierge designed for the modern connoisseur. Moving away from cluttered interfaces, this project implements a **"Dark Luxury" design system** to provide a seamless, high-end user experience for discovering fragrances.
+**ScentSational** is not just a database, it is a digital concierge designed for the modern connoisseur. Moving away from cluttered interfaces, this project implements a **"Dark Luxury" design system** to provide a seamless, high-end user experience for discovering fragrances.
 
 The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering curated discovery modes in a mobile-responsive environment.
 
@@ -68,10 +68,7 @@ We mapped the frequency of primary accords across the database. As shown below, 
   <img src="assets/olfactory_landscape.png" alt="Olfactory Landscape Chart" width="800">
   <p><i>Figure 1: Distribution of dominant olfactory accords in the curated dataset.</i></p>
 </div>
-<div align="center">
-  <img src="assets/olfactory_landscape.png" ... >
-  <p><i>Figure 1...</i></p>
-</div>
+
 ### Top Designer Analysis
 Beyond olfactory notes, we analyzed market presence by brand. The dataset highlights a mix of high-volume commercial giants (Avon, Zara) alongside heritage luxury houses (Guerlain, Dior), showcasing the diverse range of the collection.
 
@@ -111,6 +108,7 @@ Beyond olfactory notes, we analyzed market presence by brand. The dataset highli
 
 ### 📚 Data Origin
 The application is powered by a curated dataset (`scentsational_data.csv`), rigorously processed for this portfolio.
+* **Source:** [Fragrantica Fragrance Dataset (Kaggle)](https://www.kaggle.com/datasets/olgagmiufana1/fragrantica-com-fragrance-dataset)
 * **Aggregated Sources:** Consolidated olfactory notes, popularity ratings, and visual assets from public fragrance databases.
 * **Preprocessing:** Raw data underwent regex standardization to ensure consistency in brand names and accords.
 
@@ -118,7 +116,7 @@ The application is powered by a curated dataset (`scentsational_data.csv`), rigo
 This project is released under the **MIT License**.
 > *Permission is hereby granted, free of charge, to any person obtaining a copy of this software...*
 
-You are free to use, modify, and distribute this software, provided that the copyright notice is preserved. See the [LICENSE](LICENSE) file for details.
+You are free to use, modify, and distribute this software, provided that the copyright notice is preserved. See the [LICENSE](./) file for details.
 
 ---
 
@@ -126,22 +124,15 @@ You are free to use, modify, and distribute this software, provided that the cop
 
 ## 👩‍💻 Author
 
-**Magdalena Romaniecka**
-<br>
-*Data Engineer & Web Analytics Specialist*
+---
 
-<br>
+<div align="center">
 
-> *"Building bridges between raw data and luxury user experiences."*
+Created by **Magdalena Romaniecka** *Data Analyst & Web Analytics Enthusiast* © 2025
 
 <br>
 
 [![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?style=flat&logo=github&logoColor=white)](https://github.com/MagdalenaRomaniecka)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/magdalena-romaniecka/)
-
-<br>
-<hr width="50%">
-
-Copyright © 2026 Magdalena Romaniecka. All Rights Reserved.
 
 </div>
