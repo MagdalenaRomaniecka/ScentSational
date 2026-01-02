@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import re
 
 # -----------------------------------------------------------------------------
-# 1. LUXURY STYLING & CONFIGURATION (MOBILE OPTIMIZED)
+# 1. LUXURY STYLING & CONFIGURATION (MOBILE PERFECTED)
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide", initial_sidebar_state="collapsed")
 
@@ -21,7 +20,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* --- RESPONSIVE TYPOGRAPHY --- */
+    /* --- TYPOGRAPHY (DESKTOP) --- */
     h1 {
         font-family: 'Playfair Display', serif !important;
         color: #D4AF37 !important;
@@ -32,6 +31,7 @@ st.markdown("""
         margin-bottom: 5px;
         margin-top: 0;
         line-height: 1.2;
+        word-wrap: break-word; /* Safety */
     }
     .subtitle {
         text-align: center;
@@ -42,7 +42,7 @@ st.markdown("""
         margin-bottom: 0;
     }
 
-    /* --- GOLD FRAME HEADER --- */
+    /* --- HEADER FRAME --- */
     .header-frame {
         border: 1px solid #D4AF37;
         padding: 30px;
@@ -96,6 +96,7 @@ st.markdown("""
         letter-spacing: 4px;
         color: #D4AF37;
         margin-bottom: 10px;
+        word-break: break-word; /* Prevents overflow */
     }
     .row-name {
         font-family: 'Playfair Display', serif;
@@ -127,18 +128,32 @@ st.markdown("""
         display: inline-block;
     }
 
-    /* --- MOBILE OPTIMIZATION (MEDIA QUERIES) --- */
-    @media only screen and (max-width: 768px) {
-        h1 { font-size: 2.2rem !important; letter-spacing: 2px; }
-        .subtitle { font-size: 0.6rem; letter-spacing: 2px; }
-        .header-frame { padding: 20px 10px; margin-bottom: 20px; }
-        .perfume-row { padding: 30px 0; }
-        .row-brand { font-size: 1.4rem; letter-spacing: 2px; }
+    /* --- MOBILE OPTIMIZATION (CRITICAL FIXES) --- */
+    @media only screen and (max-width: 600px) {
+        /* Force Title to fit screen width using VW units */
+        h1 { 
+            font-size: 8vw !important; /* Dynamic sizing based on screen width */
+            letter-spacing: 0px !important; /* Remove spacing to save space */
+            line-height: 1.1 !important;
+        }
+        .subtitle { 
+            font-size: 0.65rem !important; 
+            letter-spacing: 1px !important; 
+        }
+        .header-frame { 
+            padding: 15px 5px !important; /* Minimal padding */
+            margin-bottom: 20px; 
+        }
+        
+        /* Adjust Rows */
+        .perfume-row { padding: 25px 0; }
+        .row-brand { font-size: 1.4rem; letter-spacing: 1px; }
         .row-name { font-size: 1.1rem; }
-        .js-plotly-plot { margin-bottom: 20px; }
+        
+        /* Ensure charts have space */
+        .js-plotly-plot { margin-bottom: 10px; }
     }
     
-    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background-color: #050505;
         border-right: 1px solid #222;
@@ -160,7 +175,7 @@ def load_data():
     if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
     if 'url' not in df.columns and 'link' in df.columns: df = df.rename(columns={'link': 'url'})
     
-    # --- DEEP CLEANING (REGEX) ---
+    # Cleaning
     if 'Name' in df.columns:
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Name'] = df['Name'].str.replace(r'^\d+\s*', '', regex=True)
@@ -188,16 +203,14 @@ def load_data():
     return df
 
 def main():
-    # --- SIDEBAR ---
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
         st.info("Discovery Mode Active")
-        
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-top:30px; margin-bottom:10px;'>AI ENGINE</div>", unsafe_allow_html=True)
         st.write("Unlock the neural network to find scents based on chemical DNA.")
         st.link_button("🧪 LAUNCH AI CORE", "https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS", use_container_width=True)
 
-    # --- HEADER ---
+    # HEADER
     st.markdown("""
         <div class="header-frame">
             <h1>SCENTSATIONAL</h1>
@@ -208,7 +221,7 @@ def main():
     df = load_data()
     if df is None: return
 
-    # --- METRICS ---
+    # METRICS
     c1, c2, c3, c4 = st.columns(4)
     val1 = f"{len(df):,}".replace(",", " ")
     val2 = f"{df['Brand'].nunique()}" if 'Brand' in df.columns else "-"
@@ -225,11 +238,16 @@ def main():
 
     st.write("")
 
-    # --- TABS ---
+    # TABS
     tab_insight, tab_explore = st.tabs(["MARKET INSIGHTS", "CATALOGUE"])
 
-    # CONFIG FOR CHARTS (Locks interactions so scrolling works)
-    chart_config = {'displayModeBar': False, 'scrollZoom': False}
+    # --- NUCLEAR CHART CONFIG ---
+    # staticPlot: True sprawia, że wykres jest jak obrazek (zero interakcji).
+    # To gwarantuje, że przewijanie strony na telefonie zawsze zadziała.
+    chart_config = {
+        'staticPlot': True, 
+        'displayModeBar': False
+    }
 
     with tab_insight:
         col1, col2 = st.columns(2)
@@ -247,10 +265,8 @@ def main():
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(family="Lato", color="#bbb"), yaxis=dict(autorange="reversed"),
                     margin=dict(l=0, r=0, t=10, b=0), height=350,
-                    dragmode=False # Disable panning
+                    dragmode=False
                 )
-                fig.update_xaxes(fixedrange=True) # Lock zoom
-                fig.update_yaxes(fixedrange=True) # Lock zoom
                 st.plotly_chart(fig, use_container_width=True, config=chart_config)
 
         with col2:
@@ -267,8 +283,6 @@ def main():
                     margin=dict(l=0, r=0, t=10, b=0), height=350,
                     dragmode=False
                 )
-                fig2.update_xaxes(fixedrange=True)
-                fig2.update_yaxes(fixedrange=True)
                 st.plotly_chart(fig2, use_container_width=True, config=chart_config)
 
     with tab_explore:
@@ -298,7 +312,6 @@ def main():
 
         st.markdown(f"<div style='text-align: center; color: #444; margin: 20px 0; letter-spacing: 1px; font-size:0.8rem;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
-        # --- ROWS ---
         for index, row in filtered_df.head(40).iterrows():
             brand = row.get('Brand', 'Unknown Brand')
             name = row.get('Name', 'Unknown Name')
