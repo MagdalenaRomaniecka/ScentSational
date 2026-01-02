@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -28,9 +26,11 @@ st.markdown("""
     
     /* MOBILE OPTIMIZATION */
     @media only screen and (max-width: 600px) {
-        h1 { font-size: 2.2rem !important; }
+        h1 { font-size: 2.0rem !important; }
+        h2 { font-size: 1.5rem !important; }
+        .stButton button { width: 100%; }
+        /* Forces columns to stack nicely on mobile */
         div[data-testid="column"] { width: 100% !important; flex: 1 1 auto !important; }
-        .stImage { max-width: 100% !important; }
     }
     
     /* Inputs */
@@ -45,53 +45,42 @@ st.markdown("""
         border-radius: 8px;
         border: 1px solid #333;
     }
+    
+    /* Metrics/Cards */
+    div[data-testid="metric-container"] {
+        background-color: #1A1A1A;
+        border: 1px solid #333;
+        padding: 10px;
+        border-radius: 5px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- DATA LOADING & AI ENGINE ---
+# --- DATA LOADING ---
 @st.cache_data
-def load_and_process_data():
+def load_data():
     """
-    Loads CSV and computes the AI Similarity Matrix ON THE FLY.
-    No external .npy file needed.
+    Loads the original .npy matrix and the corrected CSV.
     """
     try:
-        # 1. Load Data (Robust CSV handling)
+        # 1. Load CSV (Fixing filename and encoding errors)
+        # scentsational_data.csv is the correct file we agreed on
         df = pd.read_csv('scentsational_data.csv', encoding='latin1', on_bad_lines='skip')
         df.columns = df.columns.str.strip()
         
-        # 2. Create AI Features (The "Brain")
-        # We combine important text columns to create a "profile" for each perfume
-        # Adjust column names below based on what you actually have in CSV
-        text_columns = ['Main Accords', 'Description', 'Brand', 'Notes']
+        # 2. Load the original AI Matrix
+        similarity_matrix = np.load('hybrid_similarity.npy')
         
-        # Fill missing values with empty string
-        for col in text_columns:
-            if col in df.columns:
-                df[col] = df[col].fillna('')
-            else:
-                df[col] = '' # Create empty col if missing to prevent error
-                
-        # Combine text for analysis
-        df['combined_features'] = df['Main Accords'] + " " + df['Description'] + " " + df['Brand'] + " " + df['Notes']
-        
-        # 3. Calculate Cosine Similarity (Math)
-        tfidf = TfidfVectorizer(stop_words='english')
-        tfidf_matrix = tfidf.fit_transform(df['combined_features'])
-        cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-        
-        return df, cosine_sim
-        
+        return df, similarity_matrix
     except Exception as e:
-        st.error(f"Data Processing Error: {e}")
         return None, None
 
-df, similarity_matrix = load_and_process_data()
+df, similarity_matrix = load_data()
 
-# --- RECOMMENDATION LOGIC ---
+# --- ORIGINAL AI LOGIC ---
 def get_recommendations(perfume_name, df, matrix, top_n=4):
     try:
-        # Map perfume names to index
+        # Look up index
         indices = pd.Series(df.index, index=df['Name']).drop_duplicates()
         
         if perfume_name not in indices:
@@ -99,14 +88,14 @@ def get_recommendations(perfume_name, df, matrix, top_n=4):
             
         idx = indices[perfume_name]
         
-        # Get pairwise similarity scores
+        # Get scores from pre-computed matrix
         sim_scores = list(enumerate(matrix[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[1:top_n+1] # Skip self
+        sim_scores = sim_scores[1:top_n+1]
         
         perfume_indices = [i[0] for i in sim_scores]
         return df.iloc[perfume_indices]
-    except Exception as e:
+    except Exception:
         return None
 
 # --- MAIN UI ---
@@ -115,7 +104,7 @@ st.markdown("### *AI-Powered Fragrance Concierge*")
 
 if df is not None and similarity_matrix is not None:
     
-    # SEARCH INPUT
+    # Search Input
     perfume_list = sorted(df['Name'].astype(str).unique().tolist())
     
     selected_perfume = st.selectbox(
@@ -127,12 +116,12 @@ if df is not None and similarity_matrix is not None:
     if selected_perfume:
         st.markdown("---")
         
-        # HERO SECTION
-        # Safe logical indexing
+        # Hero Section
         hero_row_list = df[df['Name'] == selected_perfume]
         if not hero_row_list.empty:
             hero_row = hero_row_list.iloc[0]
             
+            # Columns optimized for mobile via CSS
             c1, c2 = st.columns([1, 2])
             with c1:
                 if 'Image URL' in df.columns and pd.notna(hero_row['Image URL']):
@@ -143,14 +132,15 @@ if df is not None and similarity_matrix is not None:
                     st.markdown(f"**House:** {hero_row['Brand']}")
                 st.info("Analyzing olfactory profile...")
 
-            # RESULTS
+            # Recommendations
             results = get_recommendations(selected_perfume, df, similarity_matrix)
             
-            if results is not None and not results.empty:
+            if results is not None:
                 st.markdown("### ✨ Recommended for You")
                 
                 for _, row in results.iterrows():
                     with st.container():
+                        # Mobile-friendly layout
                         rc1, rc2 = st.columns([1, 3])
                         with rc1:
                             if 'Image URL' in df.columns and pd.notna(row['Image URL']):
@@ -159,14 +149,12 @@ if df is not None and similarity_matrix is not None:
                             st.subheader(row['Name'])
                             if 'Brand' in df.columns:
                                 st.caption(f"By {row['Brand']}")
-                            if 'Main Accords' in df.columns:
-                                st.write(f"**Notes:** {str(row['Main Accords'])[:100]}...")
                         st.markdown("---")
         else:
-            st.error("Error finding perfume details.")
+            st.error("Perfume details not found in database.")
 
 else:
-    st.error("Critical Error: Could not load data from 'scentsational_data.csv'")
+    st.error("System Error: Could not load 'scentsational_data.csv' or 'hybrid_similarity.npy'. Check files in repo.")
 
 # --- FOOTER ---
 st.markdown("<br><br>", unsafe_allow_html=True)
