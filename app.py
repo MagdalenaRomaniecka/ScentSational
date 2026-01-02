@@ -55,14 +55,17 @@ st.markdown("""
 # --- DATA LOADING ---
 @st.cache_data
 def load_data():
-    """Loads the main dataset and pre-computed similarity matrix."""
+    """Loads the main dataset with specific encoding handling."""
     try:
-        # CORRECTED FILENAME
-        df = pd.read_csv('scentsational_data.csv')
-        # similarity_matrix = np.load('hybrid_similarity.npy') # Uncomment when file is ready
+        # FIX: Added encoding='latin1' to handle special characters (accents)
+        df = pd.read_csv('scentsational_data.csv', encoding='latin1')
         return df
     except FileNotFoundError:
         return None
+    except UnicodeDecodeError:
+        # Fallback if latin1 fails
+        df = pd.read_csv('scentsational_data.csv', encoding='cp1252')
+        return df
 
 data = load_data()
 
