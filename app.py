@@ -56,9 +56,9 @@ st.markdown("""
 @st.cache_data
 def load_data():
     """Loads the main dataset and pre-computed similarity matrix."""
-    # Ensure these files exist in your folder
     try:
-        df = pd.read_csv('perfumes_dataset.csv')
+        # CORRECTED FILENAME
+        df = pd.read_csv('scentsational_data.csv')
         # similarity_matrix = np.load('hybrid_similarity.npy') # Uncomment when file is ready
         return df
     except FileNotFoundError:
@@ -79,10 +79,10 @@ if data is not None:
         st.markdown("---")
         st.write(f"🔍 Analyzing olfactory signature for: **{user_input}**...")
         
-        # Placeholder for AI Logic (This simulates the backend processing)
+        # Placeholder for AI Logic
         st.info("Recommendation Engine is processing signatures...")
         
-        # UI Structure for Results (Example)
+        # UI Structure for Results
         st.markdown("### Recommended Signature Scents")
         col1, col2 = st.columns(2)
         
@@ -97,7 +97,7 @@ if data is not None:
             st.markdown("*Vibe: Spicy, Earthy, Intense*")
 
 else:
-    st.error("Critical Error: 'perfumes_dataset.csv' not found. Please upload data.")
+    st.error("Critical Error: 'scentsational_data.csv' not found. Please verify the file exists in the repository.")
 
 # --- FOOTER ---
 st.markdown("---")
