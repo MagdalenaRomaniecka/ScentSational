@@ -68,7 +68,17 @@ We mapped the frequency of primary accords across the database. As shown below, 
   <img src="assets/olfactory_landscape.png" alt="Olfactory Landscape Chart" width="800">
   <p><i>Figure 1: Distribution of dominant olfactory accords in the curated dataset.</i></p>
 </div>
+<div align="center">
+  <img src="assets/olfactory_landscape.png" ... >
+  <p><i>Figure 1...</i></p>
+</div>
+### Top Designer Analysis
+Beyond olfactory notes, we analyzed market presence by brand. The dataset highlights a mix of high-volume commercial giants (Avon, Zara) alongside heritage luxury houses (Guerlain, Dior), showcasing the diverse range of the collection.
 
+<div align="center">
+  <img src="assets/top_designers.png" alt="Top Designers Chart" width="800">
+  <p><i>Figure 2: Top 10 designers by number of fragrances in the database.</i></p>
+</div>
 ---
 
 ## 🛠️ Technology Stack
