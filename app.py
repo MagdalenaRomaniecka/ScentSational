@@ -41,7 +41,7 @@ st.markdown("""
         margin-bottom: 0;
     }
 
-    /* --- MOBILE OPTIMIZATION (NEW) --- */
+    /* --- MOBILE OPTIMIZATION --- */
     @media only screen and (max-width: 600px) {
         h1 { font-size: 2.0rem !important; }
         .subtitle { font-size: 0.6rem !important; }
@@ -200,10 +200,11 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
+    # NAZWA PLIKU MUSI BYĆ TAKA JAK PONIŻEJ:
     file_path = 'scentsational_data.csv'
     df = None
     try:
-        # Changed to sep=None + engine='python' to robustly handle separators
+        # Automatyczne wykrywanie separatora i naprawa błędów
         df = pd.read_csv(file_path, sep=None, encoding='latin1', on_bad_lines='skip', engine='python')
     except Exception:
         return None
@@ -304,7 +305,6 @@ def main():
                     font=dict(family="Lato", color="#bbb"), yaxis=dict(autorange="reversed"),
                     margin=dict(l=0, r=0, t=20, b=0), height=350
                 )
-                # FIX: Remove ModeBar (Zoom)
                 st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
         with col2:
@@ -320,7 +320,6 @@ def main():
                     font=dict(family="Lato", color="#bbb"), yaxis=dict(autorange="reversed"),
                     margin=dict(l=0, r=0, t=20, b=0), height=350
                 )
-                # FIX: Remove ModeBar (Zoom)
                 st.plotly_chart(fig2, use_container_width=True, config={'displayModeBar': False})
 
     with tab_explore:
