@@ -55,17 +55,16 @@ st.markdown("""
 # --- DATA LOADING ---
 @st.cache_data
 def load_data():
-    """Loads the main dataset with specific encoding handling."""
+    """Loads dataset with robust error handling for bad lines and encoding."""
     try:
-        # FIX: Added encoding='latin1' to handle special characters (accents)
-        df = pd.read_csv('scentsational_data.csv', encoding='latin1')
+        # ROBUST LOADING STRATEGY:
+        # 1. encoding='latin1': Handles accents/special chars
+        # 2. on_bad_lines='skip': Ignores rows with structure errors (too many commas)
+        df = pd.read_csv('scentsational_data.csv', encoding='latin1', on_bad_lines='skip')
         return df
-    except FileNotFoundError:
+    except Exception as e:
+        # Last resort fallback if file is completely unreadable
         return None
-    except UnicodeDecodeError:
-        # Fallback if latin1 fails
-        df = pd.read_csv('scentsational_data.csv', encoding='cp1252')
-        return df
 
 data = load_data()
 
@@ -74,7 +73,7 @@ st.title("ScentSational")
 st.markdown("### *AI-Powered Fragrance Concierge*")
 
 # Check if data loaded correctly
-if data is not None:
+if data is not None and not data.empty:
     # Hero Input Section
     user_input = st.text_input("Enter a perfume you love (e.g., 'Black Opium')", "")
 
@@ -100,7 +99,7 @@ if data is not None:
             st.markdown("*Vibe: Spicy, Earthy, Intense*")
 
 else:
-    st.error("Critical Error: 'scentsational_data.csv' not found. Please verify the file exists in the repository.")
+    st.error("Critical Error: Unable to parse 'scentsational_data.csv'. The file structure might be corrupted.")
 
 # --- FOOTER ---
 st.markdown("---")
