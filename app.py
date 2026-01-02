@@ -4,9 +4,9 @@ import plotly.graph_objects as go
 import re
 
 # -----------------------------------------------------------------------------
-# 1. LUXURY STYLING & CONFIGURATION
+# 1. LUXURY STYLING & CONFIGURATION (MOBILE OPTIMIZED)
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
+st.set_page_config(page_title="ScentSational | Atelier", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
@@ -21,7 +21,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* TYPOGRAPHY - HEADER */
+    /* --- RESPONSIVE TYPOGRAPHY --- */
     h1 {
         font-family: 'Playfair Display', serif !important;
         color: #D4AF37 !important;
@@ -31,6 +31,7 @@ st.markdown("""
         letter-spacing: 5px;
         margin-bottom: 5px;
         margin-top: 0;
+        line-height: 1.2;
     }
     .subtitle {
         text-align: center;
@@ -41,7 +42,7 @@ st.markdown("""
         margin-bottom: 0;
     }
 
-    /* --- GOLD FRAME FOR HEADER --- */
+    /* --- GOLD FRAME HEADER --- */
     .header-frame {
         border: 1px solid #D4AF37;
         padding: 30px;
@@ -50,126 +51,94 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
     }
 
-    /* --- CUSTOM GOLD METRIC BOX --- */
+    /* --- METRIC BOXES --- */
     .gold-metric {
         border: 1px solid #D4AF37;
         background-color: rgba(255, 255, 255, 0.02);
-        padding: 20px;
+        padding: 15px;
         text-align: center;
         border-radius: 2px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        margin-bottom: 10px;
+        height: 100%;
     }
     .metric-label {
         font-family: 'Lato', sans-serif;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
         color: #D4AF37;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
         font-weight: 700;
     }
     .metric-value {
         font-family: 'Playfair Display', serif;
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         color: #F0E68C;
         margin: 0;
         line-height: 1;
     }
 
-    /* --- SIDEBAR STATUS --- */
-    .status-box {
-        border: 1px solid #D4AF37;
-        background-color: rgba(212, 175, 55, 0.05);
-        color: #D4AF37;
-        padding: 15px;
-        text-align: center;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        margin-bottom: 20px;
-    }
-
-    /* --- SEARCH BAR --- */
-    div[data-baseweb="select"] > div {
-        background-color: rgba(255,255,255,0.05);
-        border-color: #333;
-        color: #D4AF37;
-    }
-    
-    /* --- PERFUME ROW (BRAND DOMINANCE) --- */
+    /* --- PERFUME ROW --- */
     .perfume-row {
         border-bottom: 1px solid #1a1a1a;
-        padding: 60px 0;
+        padding: 40px 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
         transition: 0.4s ease;
     }
-    .perfume-row:hover {
-        background: radial-gradient(circle, rgba(212,175,55,0.03) 0%, transparent 70%);
-        border-bottom: 1px solid #D4AF37;
-    }
-    
-    /* BRAND - HUGE */
     .row-brand {
         font-family: 'Lato', sans-serif;
         font-size: 1.8rem; 
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 5px;
+        letter-spacing: 4px;
         color: #D4AF37;
-        margin-bottom: 15px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        margin-bottom: 10px;
     }
-    
-    /* NAME - SMALLER */
     .row-name {
         font-family: 'Playfair Display', serif;
         font-size: 1.3rem;
         color: #fff;
-        line-height: 1.4;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         text-transform: capitalize; 
-        font-weight: 400;
-        opacity: 0.9;
     }
-    
     .row-notes {
         font-family: 'Playfair Display', serif;
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: #888;
         font-style: italic;
-        margin-bottom: 30px;
-        max-width: 600px;
-        line-height: 1.6;
+        margin-bottom: 25px;
+        line-height: 1.5;
     }
     
-    /* LINK BUTTON - FORCE BLACK TEXT */
+    /* LINK BUTTON */
     .row-link {
         text-decoration: none !important;
         color: #000 !important;
         background: linear-gradient(90deg, #C5A059, #D4AF37);
-        padding: 14px 35px;
+        padding: 12px 30px;
         font-size: 0.7rem;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         font-weight: 800;
-        transition: 0.3s;
-        display: inline-block;
         border: 1px solid #C5A059;
-    }
-    .row-link:hover {
-        background: #000;
-        color: #D4AF37 !important;
-        border: 1px solid #D4AF37;
-        box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-    }
-    a.row-link:visited {
-        color: #000 !important;
+        display: inline-block;
     }
 
+    /* --- MOBILE OPTIMIZATION (MEDIA QUERIES) --- */
+    @media only screen and (max-width: 768px) {
+        h1 { font-size: 2.2rem !important; letter-spacing: 2px; }
+        .subtitle { font-size: 0.6rem; letter-spacing: 2px; }
+        .header-frame { padding: 20px 10px; margin-bottom: 20px; }
+        .perfume-row { padding: 30px 0; }
+        .row-brand { font-size: 1.4rem; letter-spacing: 2px; }
+        .row-name { font-size: 1.1rem; }
+        .js-plotly-plot { margin-bottom: 20px; }
+    }
+    
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background-color: #050505;
         border-right: 1px solid #222;
@@ -183,7 +152,6 @@ st.markdown("""
 @st.cache_data
 def load_data():
     file_path = 'scentsational_data.csv'
-    df = None
     try:
         df = pd.read_csv(file_path, sep=';', encoding='latin1', on_bad_lines='skip', engine='python')
     except Exception:
@@ -195,11 +163,8 @@ def load_data():
     # --- DEEP CLEANING (REGEX) ---
     if 'Name' in df.columns:
         df['Name'] = df['Name'].astype(str).str.strip()
-        # 1. Remove leading digits
         df['Name'] = df['Name'].str.replace(r'^\d+\s*', '', regex=True)
-        # 2. Format
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
-        # 3. Filter garbage
         df = df[df['Name'].str.len() > 1]
         df = df[~df['Name'].str.match(r'^[\d\s]+$')]
     
@@ -223,19 +188,14 @@ def load_data():
     return df
 
 def main():
+    # --- SIDEBAR ---
     with st.sidebar:
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;'>ATELIER CONTROL</div>", unsafe_allow_html=True)
-        st.markdown("""<div class="status-box">DISCOVERY MODE ACTIVE</div>""", unsafe_allow_html=True)
+        st.info("Discovery Mode Active")
         
         st.markdown("<div style='color:#D4AF37; font-size:0.8rem; letter-spacing:2px; margin-top:30px; margin-bottom:10px;'>AI ENGINE</div>", unsafe_allow_html=True)
         st.write("Unlock the neural network to find scents based on chemical DNA.")
-        st.markdown("""
-            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="
-                display: block; text-align: center; border: 1px solid #D4AF37; color: #D4AF37; padding: 12px; text-decoration: none; 
-                font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-top:10px; transition: 0.3s;">
-               LAUNCH AI CORE
-            </a>
-        """, unsafe_allow_html=True)
+        st.link_button("🧪 LAUNCH AI CORE", "https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS", use_container_width=True)
 
     # --- HEADER ---
     st.markdown("""
@@ -258,20 +218,24 @@ def main():
     def gold_box(label, value):
         return f"""<div class="gold-metric"><div class="metric-label">{label}</div><div class="metric-value">{value}</div></div>"""
 
-    c1.markdown(gold_box("Collection Size", val1), unsafe_allow_html=True)
-    c2.markdown(gold_box("Designers", val2), unsafe_allow_html=True)
-    c3.markdown(gold_box("Trending Note", val3), unsafe_allow_html=True)
-    c4.markdown(gold_box("Avg Score", val4), unsafe_allow_html=True)
+    with c1: st.markdown(gold_box("Collection", val1), unsafe_allow_html=True)
+    with c2: st.markdown(gold_box("Designers", val2), unsafe_allow_html=True)
+    with c3: st.markdown(gold_box("Trending", val3), unsafe_allow_html=True)
+    with c4: st.markdown(gold_box("Avg Score", val4), unsafe_allow_html=True)
 
     st.write("")
 
     # --- TABS ---
     tab_insight, tab_explore = st.tabs(["MARKET INSIGHTS", "CATALOGUE"])
 
+    # CONFIG FOR CHARTS (Locks interactions so scrolling works)
+    chart_config = {'displayModeBar': False, 'scrollZoom': False}
+
     with tab_insight:
         col1, col2 = st.columns(2)
+        
         with col1:
-            st.markdown("<h3 style='color:#D4AF37; text-align:center;'>Top Designers</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#D4AF37; text-align:center; font-size:1.2rem;'>Top Designers</h3>", unsafe_allow_html=True)
             if 'Brand' in df.columns:
                 top_brands = df['Brand'].value_counts().head(10).reset_index()
                 top_brands.columns = ['Brand', 'Count']
@@ -282,12 +246,15 @@ def main():
                 fig.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(family="Lato", color="#bbb"), yaxis=dict(autorange="reversed"),
-                    margin=dict(l=0, r=0, t=20, b=0), height=350
+                    margin=dict(l=0, r=0, t=10, b=0), height=350,
+                    dragmode=False # Disable panning
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_xaxes(fixedrange=True) # Lock zoom
+                fig.update_yaxes(fixedrange=True) # Lock zoom
+                st.plotly_chart(fig, use_container_width=True, config=chart_config)
 
         with col2:
-            st.markdown("<h3 style='color:#D4AF37; text-align:center;'>Olfactory Landscape</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#D4AF37; text-align:center; font-size:1.2rem;'>Olfactory Landscape</h3>", unsafe_allow_html=True)
             if 'Primary Accord' in df.columns:
                 accord_counts = df['Primary Accord'].value_counts().head(10)
                 fig2 = go.Figure(go.Bar(
@@ -297,38 +264,39 @@ def main():
                 fig2.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(family="Lato", color="#bbb"), yaxis=dict(autorange="reversed"),
-                    margin=dict(l=0, r=0, t=20, b=0), height=350
+                    margin=dict(l=0, r=0, t=10, b=0), height=350,
+                    dragmode=False
                 )
-                st.plotly_chart(fig2, use_container_width=True)
+                fig2.update_xaxes(fixedrange=True)
+                fig2.update_yaxes(fixedrange=True)
+                st.plotly_chart(fig2, use_container_width=True, config=chart_config)
 
     with tab_explore:
-        st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; color:#666; font-size:0.7rem; margin-bottom:5px; letter-spacing:2px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
         
-        # --- SEARCH LIST GENERATION ---
         unique_brands = set(df['Brand'].dropna().unique())
         unique_names = set(df['Name'].dropna().unique())
         search_options = sorted(list(unique_brands | unique_names))
         
         selected_search = st.selectbox(
-            "Type to search...", options=search_options, index=None, 
-            placeholder="Type a brand (e.g. Xerjoff) or perfume name (e.g. Accento)...", label_visibility="collapsed"
+            "Search", options=search_options, index=None, 
+            placeholder="Type a brand or perfume name...", label_visibility="collapsed"
         )
         
-        col_f_space, col_f1, col_f2, col_f3, col_f_space2 = st.columns([2, 1, 1, 1, 2])
-        filter_type = None
-        with col_f1: 
-            if st.button("Top Rated"): filter_type = "high_rated"
-        with col_f2: pass
-        with col_f3: pass
-
+        col_t1, col_t2 = st.columns([1, 3])
+        with col_t1:
+            show_top_rated = st.toggle("Show Top Rated Only (4.5+)")
+        
         filtered_df = df.copy()
         if selected_search:
             mask = (filtered_df['Brand'].astype(str) == selected_search) | (filtered_df['Name'].astype(str) == selected_search)
             if not mask.any(): mask = filtered_df.astype(str).apply(lambda x: x.str.contains(selected_search, case=False)).any(axis=1)
             filtered_df = filtered_df[mask]
-        if filter_type == "high_rated": filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
+            
+        if show_top_rated:
+            filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
 
-        st.markdown(f"<div style='text-align: center; color: #444; margin: 30px 0; letter-spacing: 1px;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; color: #444; margin: 20px 0; letter-spacing: 1px; font-size:0.8rem;'>{len(filtered_df)} SCENTS DISCOVERED</div>", unsafe_allow_html=True)
         
         # --- ROWS ---
         for index, row in filtered_df.head(40).iterrows():
@@ -343,7 +311,7 @@ def main():
             
             link_html = ""
             if url and str(url).startswith('http'):
-                link_html = f'<a href="{url}" target="_blank" class="row-link">Explore on Fragrantica</a>'
+                link_html = f'<a href="{url}" target="_blank" class="row-link">Check Details</a>'
 
             st.markdown(f"""
                 <div class="perfume-row">
