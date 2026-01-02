@@ -13,7 +13,9 @@
   <i>"Scent is the brother of breath."</i>
   <br>
 </p>
-
+<a href="https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_LAUNCH_LIVE_APP-000000?style=for-the-badge&logo=streamlit&logoColor=FF4B4B&border=D4AF37" alt="Launch App" height="45">
+</a>
 </div>
 
 ---
@@ -23,6 +25,26 @@
 **ScentSational** is not just a database; it is a digital concierge designed for the modern connoisseur. Moving away from cluttered interfaces, this project implements a **"Dark Luxury" design system** to provide a seamless, high-end user experience for discovering fragrances.
 
 The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering curated discovery modes in a mobile-responsive environment.
+
+---
+## 🏗️ Architecture & Ecosystem
+
+This project utilizes a **Decoupled Architecture** strategy to optimize performance and resource management. The system is split into two distinct repositories:
+
+### 1. The Atelier (Lite Version) - *Current Repository*
+* **Role:** Frontend, Analytics Dashboard, Rule-based Recommendation.
+* **Focus:** Speed, Mobile Responsiveness, Data Visualization.
+* **Hosting:** Streamlit Cloud.
+* **Data:** Lightweight CSV datasets.
+
+### 2. The AI Core (Heavy Version)
+* **Role:** Deep Learning Engine, Neural Network Embeddings.
+* **Focus:** Chemical similarity search, Advanced NLP.
+* **Hosting:** Hugging Face Spaces (GPU/LFS support).
+* **Repository:** [📂 ScentSational-Fragrantica-LFS](https://github.com/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS)
+* **Live AI Model:** [🤗 Launch AI Core on Hugging Face](https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS)
+
+> *Note: This repository (Lite) links to the AI Core via the application interface, keeping the user experience seamless while managing heavy computational loads externally.*
 
 ---
 
