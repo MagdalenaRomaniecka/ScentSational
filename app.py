@@ -11,11 +11,11 @@ st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
 st.markdown("""
     <style>
-    /* IMPORT FONTS: Cormorant (Titles) & Montserrat (Body/UI) */
+    /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap');
 
-    /* --- GLOBAL TYPOGRAPHY ENFORCEMENT --- */
-    html, body, [class*="css"], .stMarkdown, .stRadio, .stCheckbox, .stSelectbox {
+    /* GLOBAL FONT OVERRIDE */
+    html, body, [class*="css"], .stMarkdown, .stRadio, .stSelectbox, .stTextInput {
         font-family: 'Montserrat', sans-serif !important;
         font-weight: 300 !important;
         color: #E0E0E0 !important;
@@ -49,9 +49,26 @@ st.markdown("""
         text-align: center;
     }
 
-    /* SIDEBAR */
-    [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
-    .sidebar-gold-box { border: 1px solid #D4AF37; padding: 25px; background: rgba(212, 175, 55, 0.03); text-align: center; margin-bottom: 20px; }
+    /* CENTERED CHECKBOX HACK (NUCLEAR OPTION) */
+    div[data-testid="stCheckbox"] {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    /* This forces the label inside to not expand fully to the left */
+    div[data-testid="stCheckbox"] label {
+        width: auto !important;
+        padding-left: 0px !important;
+    }
+
+    /* INPUTS & RADIOS */
+    div[data-testid="stRadio"] > div { justify-content: center; flex-wrap: wrap; gap: 20px; }
+    .stSelectbox, .stTextInput { max-width: 650px; margin: 0 auto !important; }
+    .stSelectbox div[data-baseweb="select"] > div { text-align: center; }
+    .stTextInput input { text-align: center; }
 
     /* METRICS */
     .gold-metric {
@@ -61,20 +78,8 @@ st.markdown("""
         text-align: center;
         margin-bottom: 10px;
     }
-    .metric-label { 
-        color: #D4AF37 !important; 
-        font-size: 0.65rem; 
-        text-transform: uppercase; 
-        letter-spacing: 3px; 
-        font-weight: 600 !important; 
-    }
-    .metric-value { 
-        font-family: 'Cormorant Garamond', serif !important; 
-        font-size: clamp(1.8rem, 4vw, 2.4rem); 
-        color: #F0E68C !important; 
-        font-weight: 300; 
-        margin-top: 5px;
-    }
+    .metric-label { color: #D4AF37 !important; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 600 !important; }
+    .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.8rem, 4vw, 2.4rem); color: #F0E68C !important; font-weight: 300; margin-top: 5px; }
 
     /* PERFUME CARD */
     .perfume-card {
@@ -86,56 +91,13 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
-    .row-brand { 
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: clamp(1.4rem, 5vw, 1.8rem); 
-        font-weight: 600 !important; 
-        letter-spacing: 5px; 
-        color: #D4AF37 !important; 
-        margin-bottom: 10px; 
-        text-transform: uppercase; 
-    }
-    .row-name { 
-        font-family: 'Cormorant Garamond', serif !important; 
-        font-size: clamp(1.3rem, 4vw, 1.8rem); 
-        color: #fff !important; 
-        margin-bottom: 20px; 
-        font-style: italic; 
-        font-weight: 400;
-    }
+    .row-brand { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 600 !important; letter-spacing: 5px; color: #D4AF37 !important; margin-bottom: 10px; text-transform: uppercase; }
+    .row-name { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.3rem, 4vw, 1.8rem); color: #fff !important; margin-bottom: 20px; font-style: italic; }
     
-    /* --- ADVANCED CENTERING & UI FIXES --- */
-    
-    /* 1. Radio Buttons Centering */
-    div[data-testid="stRadio"] > div { 
-        justify-content: center; 
-        flex-wrap: wrap; 
-        gap: 25px; 
-    }
-    div[data-testid="stRadio"] label { 
-        font-size: 0.9rem !important; 
-        letter-spacing: 1px; 
-    }
+    /* SIDEBAR */
+    [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
+    .sidebar-gold-box { border: 1px solid #D4AF37; padding: 25px; background: rgba(212, 175, 55, 0.03); text-align: center; margin-bottom: 20px; }
 
-    /* 2. Checkbox Absolute Centering */
-    div[data-testid="stCheckbox"] {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-    div[data-testid="stCheckbox"] label span {
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: 0.9rem !important;
-    }
-
-    /* 3. Input Fields Centering */
-    .stSelectbox, .stTextInput { max-width: 650px; margin: 0 auto !important; }
-    .stSelectbox div[data-baseweb="select"] > div { text-align: center; }
-    .stTextInput input { text-align: center; }
-
-    /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 40px; justify-content: center; margin-bottom: 40px;}
     .stTabs [data-baseweb="tab"] { letter-spacing: 3px; text-transform: uppercase; font-size: 0.8rem;}
     .stTabs [aria-selected="true"] { color: #D4AF37 !important; border-bottom-color: #D4AF37 !important; }
@@ -149,26 +111,26 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- DATA CLEANING V3 (SMART) ---
+        # --- DATA CLEANING V4 (FINAL FIX) ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip().str.upper()
 
-        # 1. Usuń indeksy typu "001-", "01-" (cyfry + myślnik na początku)
-        # To naprawi "001-Orange", ale zostawi "212 VIP" (bo w 212 nie ma myślnika po liczbie)
-        df['Name'] = df['Name'].str.replace(r'^\d+-', '', regex=True)
-        df['Brand'] = df['Brand'].str.replace(r'^\d+-', '', regex=True)
+        # 1. Usuń indeksy typu "001-Name" (cyfry + myślnik)
+        df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
+        df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
 
-        # 2. Usuń same zera na początku (np. "0 Absolute")
-        df['Name'] = df['Name'].str.replace(r'^0+\s*', '', regex=True)
+        # 2. Usuń "0 Absolute" (Zero + spacja na początku) - TO NAPRAWI "0 Absolute Suede"
+        df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
 
-        # 3. Zamień pozostałe myślniki w środku na spacje i sformatuj
+        # 3. Usuń nazwy, które są TYLKO cyframi (np. "09", "000") - TO NAPRAWI "09"
+        # Używamy tyldy (~), żeby zostawić to, co NIE jest cyfrą
+        df = df[~df['Name'].str.match(r'^\d+$')]
+
+        # 4. Kosmetyka myślników
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ')
-
-        # 4. Usuń puste lub błędne rekordy (krótsze niż 2 znaki)
-        df = df[df['Name'].str.len() > 1]
         
-        # Metryki
+        # Reszta
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
@@ -184,7 +146,6 @@ def main():
     df = load_data()
     if df is None: return
 
-    # SIDEBAR
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
@@ -192,10 +153,8 @@ def main():
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # HEADER
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div style="color:#888; font-size:0.75rem; letter-spacing:6px; text-transform:uppercase; margin-top:8px;">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
-    # METRICS
     m1, m2, m3, m4 = st.columns([1,1,1,1])
     m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
     m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
@@ -231,7 +190,7 @@ def main():
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
         
-        # CENTERED CHECKBOX (FIXED)
+        # CHECKBOX IS NOW FORCED CENTER BY CSS
         top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.7rem; letter-spacing:2px; font-weight:bold; margin-top:20px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
