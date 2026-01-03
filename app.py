@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import re
 
 # -----------------------------------------------------------------------------
 # 1. LUXURY CONFIGURATION & TYPOGRAPHY
@@ -11,15 +10,18 @@ st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
 st.markdown("""
     <style>
-    /* IMPORT: Cormorant (Serif - Headlines) & Montserrat (Sans - UI/Body) */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500&display=swap');
 
+    /* GLOBAL FONT SETTINGS */
+    html, body, [class*="css"] {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 300;
+        color: #E0E0E0;
+    }
+    
     .stApp {
         background-color: #050505;
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
-        color: #E0E0E0;
-        font-family: 'Montserrat', sans-serif; /* NEW ELEGANT BODY FONT */
-        font-weight: 300;
     }
 
     /* HEADER */
@@ -45,6 +47,14 @@ st.markdown("""
         text-align: center;
     }
 
+    /* WIDGET TYPOGRAPHY OVERRIDE */
+    .stSelectbox div[data-baseweb="select"] > div, 
+    .stTextInput input, 
+    .stRadio label, 
+    .stCheckbox label {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
     /* SIDEBAR */
     [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
     .sidebar-gold-box { border: 1px solid #D4AF37; padding: 25px; background: rgba(212, 175, 55, 0.03); text-align: center; margin-bottom: 20px; }
@@ -56,10 +66,8 @@ st.markdown("""
         padding: 15px;
         text-align: center;
         margin-bottom: 10px;
-        transition: 0.3s;
     }
-    .gold-metric:hover { border-color: #F0E68C; background-color: rgba(212, 175, 55, 0.05); }
-    .metric-label { color: #D4AF37; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+    .metric-label { color: #D4AF37; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 600; }
     .metric-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); color: #F0E68C; font-weight: 300; margin-top: 5px;}
 
     /* PERFUME CARD */
@@ -90,20 +98,19 @@ st.markdown("""
         font-weight: 400;
     }
     
-    /* UI ELEMENTS CENTERING */
+    /* CENTERING FIXES */
     div[data-testid="stRadio"] > div { justify-content: center; flex-wrap: wrap; gap: 20px; }
-    div[data-testid="stRadio"] label { color: #D4AF37 !important; font-size: 0.85rem !important; letter-spacing: 1px; font-family: 'Montserrat', sans-serif;}
-    
-    /* Force centered inputs */
+    .stSelectbox, .stTextInput { max-width: 700px; margin: 0 auto !important; }
     .stSelectbox div[data-baseweb="select"] { text-align: center; }
     .stTextInput input { text-align: center; }
-    .stSelectbox, .stTextInput { max-width: 700px; margin: 0 auto !important; }
 
-    /* CHECKBOX CENTERING HACK */
-    div[data-testid="stCheckbox"] { display: flex; justify-content: center; width: 100%; }
-    
+    /* CHECKBOX CENTERING */
+    .stCheckbox { display: flex; justify-content: center !important; margin-top: 15px; margin-bottom: 15px; }
+    /* This forces the inner checkbox container to center */
+    .stCheckbox > label { display: inline-flex; align-items: center; justify-content: center; }
+
     .stTabs [data-baseweb="tab-list"] { gap: 40px; justify-content: center; margin-bottom: 30px;}
-    .stTabs [data-baseweb="tab"] { color: #888 !important; letter-spacing: 3px; text-transform: uppercase; font-size: 0.8rem; font-family: 'Montserrat', sans-serif;}
+    .stTabs [data-baseweb="tab"] { color: #888 !important; letter-spacing: 3px; text-transform: uppercase; font-size: 0.8rem;}
     .stTabs [aria-selected="true"] { color: #D4AF37 !important; border-bottom-color: #D4AF37 !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -115,31 +122,31 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- DATA CLEANING V2 (AGRESSIVE) ---
-        
-        # 1. Basic Clean
+        # --- SMART DATA CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip().str.upper()
 
-        # 2. Regex: Usuń początkowe cyfry i myślniki (np. "01-Interlude" -> "Interlude")
-        # Wzór: Początek ciągu (^), cyfry (\d+), opcjonalne spacje/myślniki ([\s-]*?)
-        df['Name'] = df['Name'].str.replace(r'^\d+[\s-]*', '', regex=True)
-        df['Brand'] = df['Brand'].str.replace(r'^\d+[\s-]*', '', regex=True)
+        # 1. Usuń indeksy (np. "001-Orange" -> "Orange"), ale ZACHOWAJ "212 VIP"
+        # Usuwamy cyfry TYLKO jeśli zaraz po nich jest myślnik (to cecha indeksów w tym pliku)
+        df['Name'] = df['Name'].str.replace(r'^\d+-', '', regex=True)
+        df['Brand'] = df['Brand'].str.replace(r'^\d+-', '', regex=True)
 
-        # 3. Zamiana myślników w środku nazwy na spacje
+        # 2. Usuń tylko same zera na początku (np. "0 Absolute" -> "Absolute")
+        df['Name'] = df['Name'].str.replace(r'^0+\s*', '', regex=True)
+
+        # 3. Zamień pozostałe myślniki na spacje (dla estetyki)
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ')
 
-        # 4. Usunięcie nazw, które są zbyt krótkie lub puste (np. "0", "9")
-        df = df[df['Name'].str.len() > 2]
+        # 4. Usuń śmieci (rekordy krótsze niż 2 znaki, np. "0", "1")
+        df = df[df['Name'].str.len() > 1]
         
-        # 5. Formatowanie ocen i nut
+        # Reszta formatowania
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         
-        # 6. Index
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
         
         return df
@@ -153,13 +160,13 @@ def main():
     # SIDEBAR
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
-        st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px; font-family:Montserrat;'>AI ENGINE</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
         st.write("Unlock chemical DNA search.")
-        st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px; font-family:Montserrat;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
+        st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     # HEADER
-    st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div style="color:#888; font-size:0.7rem; letter-spacing:6px; text-transform:uppercase; margin-top:8px; font-family:Montserrat;">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div style="color:#888; font-size:0.7rem; letter-spacing:6px; text-transform:uppercase; margin-top:8px;">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
     # METRICS
     m1, m2, m3, m4 = st.columns([1,1,1,1])
@@ -197,10 +204,8 @@ def main():
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
         
-        # CENTERED CHECKBOX HACK (COLUMNS)
-        c_left, c_center, c_right = st.columns([1, 2, 1])
-        with c_center:
-            top_only = st.checkbox("Show Only Top Rated (4.5+)")
+        # FULLY CENTERED CHECKBOX
+        top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.7rem; letter-spacing:2px; font-weight:bold; margin-top:15px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
         tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
@@ -222,9 +227,9 @@ def main():
                 <div class="perfume-card">
                     <div class="row-brand">{row['Brand']}</div>
                     <div class="row-name">{row['Name']}</div>
-                    <div style="color:#D4AF37; font-weight:bold; font-size:1.2rem; margin-bottom:15px; font-family:'Montserrat';">★ {row['Rating Value']:.2f} / 5.0</div>
+                    <div style="color:#D4AF37; font-weight:bold; font-size:1.2rem; margin-bottom:15px;">★ {row['Rating Value']:.2f} / 5.0</div>
                     <div style="color:#888; font-style:italic; font-family:'Cormorant Garamond', serif; font-size:1.15rem; margin-bottom:30px; line-height:1.6;">{row['Main Accords']}</div>
-                    <a href="{row.get('url', '#')}" target="_blank" style="text-decoration:none; color:black; background:#D4AF37; padding:15px 40px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; display:inline-block; font-family:'Montserrat';">EXPLORE ON FRAGRANTICA</a>
+                    <a href="{row.get('url', '#')}" target="_blank" style="text-decoration:none; color:black; background:#D4AF37; padding:15px 40px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; display:inline-block;">EXPLORE ON FRAGRANTICA</a>
                 </div>
             """, unsafe_allow_html=True)
 
