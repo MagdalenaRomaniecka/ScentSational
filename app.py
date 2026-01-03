@@ -19,7 +19,6 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* CENTERED RESPONSIVE HEADER */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -41,7 +40,19 @@ st.markdown("""
         text-align: center;
     }
 
-    /* CENTERED METRICS */
+    /* SIDEBAR LUXURY BOX */
+    [data-testid="stSidebar"] {
+        background-color: #0a0a0a !important;
+        border-right: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .sidebar-gold-box {
+        border: 1px solid #D4AF37;
+        padding: 20px;
+        background: rgba(212, 175, 55, 0.05);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.3);
         background-color: rgba(255, 255, 255, 0.01);
@@ -52,7 +63,6 @@ st.markdown("""
     .metric-label { color: #D4AF37; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; }
     .metric-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); color: #F0E68C; font-weight: 300; }
 
-    /* PERFUME CARD - CENTERED & POLISHED */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.15);
         background: rgba(10, 10, 10, 0.8);
@@ -65,11 +75,9 @@ st.markdown("""
     .row-brand { font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 900; letter-spacing: 6px; color: #D4AF37; margin-bottom: 6px; text-transform: uppercase; }
     .row-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 4vw, 1.7rem); color: #fff; margin-bottom: 15px; font-style: italic; }
     
-    /* CENTERED INPUTS & RADIOS */
     div[data-testid="stRadio"] > div { justify-content: center; flex-wrap: wrap; gap: 15px; }
-    div[data-testid="stRadio"] label { color: #D4AF37 !important; font-size: 0.8rem !important; letter-spacing: 1px; }
+    div[data-testid="stRadio"] label { color: #D4AF37 !important; font-size: 0.8rem !important; }
     .stSelectbox, .stTextInput { max-width: 700px; margin: 0 auto; text-align: center; }
-    .stCheckbox { display: flex; justify-content: center; margin: 15px 0; }
     
     .stTabs [data-baseweb="tab-list"] { gap: clamp(15px, 4vw, 40px); justify-content: center; }
     .stTabs [data-baseweb="tab"] { color: #666 !important; letter-spacing: 2px; text-transform: uppercase; font-size: 0.85rem;}
@@ -98,10 +106,18 @@ def main():
     df = load_data()
     if df is None: return
 
+    # SIDEBAR RECOVERY
+    with st.sidebar:
+        st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
+        st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
+        st.write("Unlock the neural network to find scents based on chemical DNA.")
+        st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.75rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
     # HEADER
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div style="color:#888; font-size:0.75rem; letter-spacing:5px; text-transform:uppercase; margin-top:8px;">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
-    # METRICS - CENTERED & RESPONSIVE
+    # METRICS
     m1, m2, m3, m4 = st.columns([1,1,1,1])
     m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
     m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
@@ -133,35 +149,30 @@ def main():
 
     with tab_cat:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:12px; letter-spacing:3px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
-        
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
-        
         top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.75rem; letter-spacing:2px; font-weight:bold; margin-top:10px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
         tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
-        
         note_filter = st.text_input("", placeholder="Filter by notes (e.g. Vanilla, Oud)...", label_visibility="collapsed")
 
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         if top_only: filtered = filtered[filtered['Rating Value'] >= 4.5]
-        
         if tier_choice == "Masterpieces (4.5+)": filtered = filtered[filtered['Rating Value'] >= 4.5]
         elif tier_choice == "Premium (4.0 - 4.5)": filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
         elif tier_choice == "Classic Collection": filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
-        
         if note_filter: filtered = filtered[filtered['Search_Index'].str.contains(note_filter.lower())]
 
-        st.markdown(f"<p style='text-align:center; color:#555; margin-top:25px; letter-spacing:2px; font-size:0.8rem;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center; color:#555; margin-top:25px; letter-spacing:2px;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
 
         for _, row in filtered.head(20).iterrows():
             st.markdown(f"""
                 <div class="perfume-card">
                     <div class="row-brand">{row['Brand']}</div>
                     <div class="row-name">{row['Name']}</div>
-                    <div style="color:#D4AF37; font-weight:bold; font-size:1.15rem; margin-bottom:12px; letter-spacing:2px;">★ {row['Rating Value']:.2f} / 5.0</div>
+                    <div style="color:#D4AF37; font-weight:bold; font-size:1.15rem; margin-bottom:12px;">★ {row['Rating Value']:.2f} / 5.0</div>
                     <div style="color:#888; font-style:italic; font-family:'Cormorant Garamond', serif; font-size:1.1rem; margin-bottom:25px; line-height:1.5;">{row['Main Accords']}</div>
                     <a href="{row.get('url', '#')}" target="_blank" style="text-decoration:none; color:black; background:#D4AF37; padding:12px 35px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; display:inline-block;">EXPLORE ON FRAGRANTICA</a>
                 </div>
