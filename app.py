@@ -12,7 +12,7 @@ st.cache_data.clear()
 
 st.markdown("""
     <style>
-    /* IMPORT FONTS */
+    /* FONT IMPORT */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
 
     /* GLOBAL FONT ENFORCEMENT */
@@ -28,7 +28,7 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* --- COMPACT HEADER (MOBILE FRIENDLY) --- */
+    /* --- COMPACT HEADER (Smaller & Elegant) --- */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -36,7 +36,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
-        /* Much smaller clamp for mobile/desktop balance */
+        /* Smaller font size for mobile/desktop balance */
         font-size: clamp(2rem, 5vw, 3.5rem) !important; 
         text-transform: uppercase;
         letter-spacing: clamp(4px, 1vw, 8px);
@@ -53,6 +53,7 @@ st.markdown("""
         text-transform: uppercase;
         margin-top: 0px;
         margin-bottom: 20px;
+        text-align: center;
     }
 
     .header-frame {
@@ -68,24 +69,18 @@ st.markdown("""
     /* Input Fields */
     .stSelectbox, .stMultiSelect { max-width: 700px; margin: 0 auto !important; }
     
-    /* Removing default labels labels to create cleaner look */
+    /* Hide default Streamlit labels for a cleaner look */
     .stSelectbox label, .stMultiSelect label, .stRadio label {
         display: none;
     }
 
-    /* Segmented Control (The new Tier Selector) styling is handled by Streamlit internally, 
-       but we ensure text color is correct */
-    div[data-baseweb="segmented-control"] {
-        justify-content: center;
-    }
-
-    /* Toggle Switch (Replacing Checkbox) */
+    /* Toggle Switch (Replaces Checkbox) */
     div[data-testid="stToggle"] {
         justify-content: center;
         margin-top: 10px;
     }
     div[data-testid="stToggle"] label {
-        display: block !important; /* Show label for toggle */
+        display: block !important;
         color: #D4AF37 !important;
         font-size: 0.8rem !important;
     }
@@ -131,28 +126,45 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- CLEANING ---
+        # --- DATA CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip()
+        
+        # 1. Remove indexes like "001-", "01-"
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
+        
+        # 2. Remove leading "0 "
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
+        
+        # 3. Remove numeric-only entries
         df = df[~df['Name'].str.match(r'^\d+$')]
+        
+        # 4. Apply Title Case
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
+        
+        # 5. Remove empty/short entries
         df = df[df['Name'].str.len() > 1]
+        
+        # Numeric conversion
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
+        
+        # Search Index creation
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
+        
+        # Sort by Brand then Name
         df = df.sort_values(by=['Brand', 'Name'])
         return df
     except Exception as e:
         return None
 
 def get_all_notes(df):
+    # Extract unique notes for the dropdown
     notes_set = set()
     if 'Main Accords' in df.columns:
         for accords in df['Main Accords'].dropna():
@@ -167,6 +179,7 @@ def main():
     if df is None: return
     all_notes_list = get_all_notes(df)
 
+    # Sidebar Configuration
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
@@ -174,9 +187,10 @@ def main():
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- COMPACT HEADER ---
+    # Main Header
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div class="sub-header">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
+    # KPI Metrics
     m1, m2, m3, m4 = st.columns([1,1,1,1])
     m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
     m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
@@ -207,23 +221,21 @@ def main():
             st.plotly_chart(fig3, use_container_width=True)
 
     with tab_cat:
-        st.write("") # Spacer
+        st.write("") 
 
-        # --- MODERN FILTERING SYSTEM ---
+        # --- MODERN FILTERING SYSTEM (Compact) ---
         
-        # 1. SEGMENTED CONTROL (Modern Tabs for Tiers)
-        # Using radio horizontal to simulate tabs/pills
+        # 1. Category Bar (Horizontal)
         tier_choice = st.radio(
-            "TIER_SELECTOR_HIDDEN_LABEL", # Hidden by CSS
+            "TIER_SELECTOR_HIDDEN", 
             ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
             horizontal=True,
             label_visibility="collapsed"
         )
         
-        st.write("") # Small spacer
+        st.write("") 
         
-        # 2. UNIFIED SEARCH & FILTER ROW
-        # Putting Name Search and Notes Filter side-by-side
+        # 2. Search & Notes in one line
         col_s1, col_s2 = st.columns([1.5, 1])
         
         with col_s1:
@@ -243,17 +255,15 @@ def main():
                 label_visibility="collapsed"
             )
 
-        # 3. MODERN TOGGLE (Instead of Checkbox)
-        # Centered using columns hack
+        # 3. Modern Toggle Switch
         tg_c1, tg_c2, tg_c3 = st.columns([2, 1, 2])
         with tg_c2:
             top_only = st.toggle("Strict Mode: Top Rated Only")
 
-        # LOGIC
+        # FILTER LOGIC
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         
-        # Combined Logic for Tier + Toggle
         if top_only: 
             filtered = filtered[filtered['Rating Value'] >= 4.5]
         
@@ -265,7 +275,6 @@ def main():
             for note in selected_notes:
                 filtered = filtered[filtered['Search_Index'].str.contains(note.lower())]
 
-        # RESULTS HEADER
         st.markdown(f"""
             <div style='text-align:center; margin-top:30px; margin-bottom:20px; border-top:1px solid #333; padding-top:20px;'>
                 <span style='color:#666; font-size:0.8rem; letter-spacing:2px; text-transform:uppercase;'>
