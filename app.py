@@ -15,11 +15,12 @@ st.markdown("""
     /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
 
-    /* GLOBAL FONT ENFORCEMENT - MONTSERRAT */
+    /* GLOBAL FONT ENFORCEMENT */
     html, body, [class*="css"], .stMarkdown, .stRadio, .stSelectbox, .stTextInput, .stMultiSelect, div, span, p {
         font-family: 'Montserrat', sans-serif !important;
         font-weight: 400 !important; 
         color: #E0E0E0 !important;
+        font-size: 0.95rem !important; /* Unified base font size */
     }
 
     .stApp {
@@ -27,13 +28,10 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* HEADERS - CORMORANT GARAMOND */
-    h1, h2, h3 {
+    /* HEADERS */
+    h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
-    }
-
-    h1 {
         background: linear-gradient(to bottom, #D4AF37 0%, #F0E68C 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -42,7 +40,7 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: clamp(6px, 1.8vw, 14px);
         margin: 0;
-        padding-bottom: 10px;
+        padding-bottom: 20px;
     }
 
     .header-frame {
@@ -53,47 +51,47 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- WIDGET CENTERING --- */
+    /* --- REFINED WIDGET STYLING --- */
     
-    /* 1. Selectbox & MultiSelect */
-    .stSelectbox, .stMultiSelect { max-width: 650px; margin: 0 auto !important; }
-    .stSelectbox div[data-baseweb="select"] > div { text-align: center; }
-    
-    /* 2. Radio Buttons - FORCE CENTER */
-    div[data-testid="stRadio"] {
+    /* Input Fields (Search, Notes) */
+    .stSelectbox, .stMultiSelect { 
         width: 100%;
-        display: flex;
-        justify-content: center;
     }
-    div[data-testid="stRadio"] > div {
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 25px;
+    
+    /* Label Styling (Subtle Gold) */
+    .stSelectbox label, .stMultiSelect label, .stRadio label {
+        color: #D4AF37 !important;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 0.75rem !important;
+        margin-bottom: 8px;
     }
 
-    /* 3. Checkbox - TOTAL CENTERING */
-    div[data-testid="stCheckbox"] {
+    /* Radio Buttons (Tier Selector) - CLEANER LAYOUT */
+    div[data-testid="stRadio"] > div {
         display: flex;
-        justify-content: center;
-        width: 100% !important;
-        margin-top: 15px;
-        margin-bottom: 15px;
+        flex-direction: column; /* Vertical list for cleaner look in column */
+        gap: 10px; 
     }
-    div[data-testid="stCheckbox"] label {
-        width: auto !important;
-        margin: 0 auto;
+
+    /* Checkbox - Clean & Simple */
+    div[data-testid="stCheckbox"] {
+        margin-top: 15px;
+    }
+    div[data-testid="stCheckbox"] label span {
+        font-size: 0.9rem !important;
     }
 
     /* METRICS */
     .gold-metric {
-        border: 1px solid rgba(212, 175, 55, 0.3);
+        border: 1px solid rgba(212, 175, 55, 0.2);
         background-color: rgba(255, 255, 255, 0.01);
         padding: 15px;
         text-align: center;
         margin-bottom: 10px;
     }
-    .metric-label { color: #D4AF37 !important; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 600 !important; }
-    .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.8rem, 4vw, 2.4rem); color: #F0E68C !important; font-weight: 300; margin-top: 5px; }
+    .metric-label { color: #D4AF37 !important; font-size: 0.65rem !important; text-transform: uppercase; letter-spacing: 3px; font-weight: 600 !important; }
+    .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.8rem, 4vw, 2.4rem) !important; color: #F0E68C !important; font-weight: 300; margin-top: 5px; }
 
     /* CARDS */
     .perfume-card {
@@ -105,22 +103,14 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
-    /* Brand is now standardized, removing text-transform: uppercase allows Title Case */
-    .row-brand { 
-        font-size: clamp(1.4rem, 5vw, 1.8rem); 
-        font-weight: 600 !important; 
-        letter-spacing: 5px; 
-        color: #D4AF37 !important; 
-        margin-bottom: 10px; 
-        /* text-transform: uppercase;  <-- REMOVED TO ALLOW TITLE CASE */
-    }
-    .row-name { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.3rem, 4vw, 1.8rem); color: #fff !important; margin-bottom: 20px; font-style: italic; }
+    .row-brand { font-size: clamp(1.4rem, 5vw, 1.8rem) !important; font-weight: 600 !important; letter-spacing: 4px; color: #D4AF37 !important; margin-bottom: 8px; }
+    .row-name { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.3rem, 4vw, 1.8rem) !important; color: #fff !important; margin-bottom: 20px; font-style: italic; }
     
     [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
     .sidebar-gold-box { border: 1px solid #D4AF37; padding: 25px; background: rgba(212, 175, 55, 0.03); text-align: center; margin-bottom: 20px; }
 
     .stTabs [data-baseweb="tab-list"] { gap: 40px; justify-content: center; margin-bottom: 40px;}
-    .stTabs [data-baseweb="tab"] { letter-spacing: 3px; text-transform: uppercase; font-size: 0.8rem;}
+    .stTabs [data-baseweb="tab"] { letter-spacing: 3px; text-transform: uppercase; font-size: 0.8rem !important;}
     .stTabs [aria-selected="true"] { color: #D4AF37 !important; border-bottom-color: #D4AF37 !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -132,39 +122,27 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- DATA CLEANING & STANDARDIZATION ---
+        # --- CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
-        df['Brand'] = df['Brand'].astype(str).str.strip() 
+        df['Brand'] = df['Brand'].astype(str).str.strip()
 
-        # 1. Remove indexes (e.g., "001-")
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
-
-        # 2. Remove leading "0 "
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
-
-        # 3. Remove numeric-only entries
         df = df[~df['Name'].str.match(r'^\d+$')]
 
-        # 4. ENFORCE TITLE CASE (Fixes "ANGEL SCHLESSER" -> "Angel Schlesser")
+        # Title Case Fix
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
         
-        # 5. Remove short garbage entries
         df = df[df['Name'].str.len() > 1]
-        
-        # Ratings
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
-        # Notes
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         
-        # Search Index
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
-        
-        # Sort (Brand -> Name)
         df = df.sort_values(by=['Brand', 'Name'])
         
         return df
@@ -184,7 +162,6 @@ def get_all_notes(df):
 def main():
     df = load_data()
     if df is None: return
-
     all_notes_list = get_all_notes(df)
 
     with st.sidebar:
@@ -226,26 +203,38 @@ def main():
             st.plotly_chart(fig3, use_container_width=True)
 
     with tab_cat:
-        st.markdown("<div style='text-align:center; color:#666; font-size:0.75rem; margin-bottom:12px; letter-spacing:3px; text-transform: uppercase;'>Search the Archives</div>", unsafe_allow_html=True)
+        # --- NEW DASHBOARD LAYOUT ---
+        # 1. Main Search Bar (Full Width)
+        selected = st.selectbox(
+            "SEARCH THE ARCHIVES", 
+            options=sorted(list(df['Name'].unique()) + list(df['Brand'].unique())), 
+            index=None, 
+            placeholder="Search by brand or perfume name...",
+        )
         
-        search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
-        selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
+        st.write("") # Spacer
+
+        # 2. Control Panel (2 Columns)
+        col_filters, col_notes = st.columns([1, 1], gap="large")
         
-        # --- CHECKBOX CENTERING ---
-        cb_col1, cb_col2, cb_col3 = st.columns([1.5, 1, 1.5]) 
-        with cb_col2:
+        with col_filters:
+            # Tiers & Checkbox combined in one clean column
+            tier_choice = st.radio(
+                "COLLECTION TIER", 
+                ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"]
+            )
+            st.write("")
             top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
-        st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.7rem; letter-spacing:2px; font-weight:bold; margin-top:20px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
-        tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
-        
-        selected_notes = st.multiselect(
-            "", 
-            options=all_notes_list, 
-            placeholder="Filter by notes (type 'Va' for Vanilla, 'Ou' for Oud)...",
-            label_visibility="collapsed"
-        )
+        with col_notes:
+            # Notes Filter
+            selected_notes = st.multiselect(
+                "OLFACTORY NOTES", 
+                options=all_notes_list, 
+                placeholder="Filter by ingredients (e.g. Oud, Rose, Vanilla)..."
+            )
 
+        # Filtering Logic
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         if top_only: filtered = filtered[filtered['Rating Value'] >= 4.5]
@@ -257,15 +246,15 @@ def main():
             for note in selected_notes:
                 filtered = filtered[filtered['Search_Index'].str.contains(note.lower())]
 
-        st.markdown(f"<p style='text-align:center; color:#555; margin-top:30px; letter-spacing:2px; font-size:0.8rem;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center; color:#555; margin-top:40px; letter-spacing:2px; font-size:0.8rem; border-top:1px solid #222; padding-top:20px;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
 
         for _, row in filtered.head(20).iterrows():
             st.markdown(f"""
                 <div class="perfume-card">
                     <div class="row-brand">{row['Brand']}</div>
                     <div class="row-name">{row['Name']}</div>
-                    <div style="color:#D4AF37; font-weight:bold; font-size:1.2rem; margin-bottom:15px;">★ {row['Rating Value']:.2f} / 5.0</div>
-                    <div style="color:#888; font-style:italic; font-family:'Cormorant Garamond', serif; font-size:1.15rem; margin-bottom:30px; line-height:1.6;">{row['Main Accords']}</div>
+                    <div style="color:#D4AF37; font-weight:bold; font-size:1.1rem; margin-bottom:15px;">★ {row['Rating Value']:.2f} / 5.0</div>
+                    <div style="color:#888; font-style:italic; font-family:'Cormorant Garamond', serif; font-size:1.1rem; margin-bottom:30px; line-height:1.6;">{row['Main Accords']}</div>
                     <a href="{row.get('url', '#')}" target="_blank" style="text-decoration:none; color:black; background:#D4AF37; padding:15px 40px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; display:inline-block;">EXPLORE ON FRAGRANTICA</a>
                 </div>
             """, unsafe_allow_html=True)
