@@ -5,17 +5,17 @@ import plotly.express as px
 import re
 
 # -----------------------------------------------------------------------------
-# 1. KONFIGURACJA UI
+# 1. UI CONFIGURATION
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 st.cache_data.clear()
 
 st.markdown("""
     <style>
-    /* IMPORT CZCIONEK */
+    /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
 
-    /* GLOBALNE WYMUSZENIE CZCIONKI - MONTSERRAT (Teraz nieco grubsza - 400, dla czytelności) */
+    /* GLOBAL FONT ENFORCEMENT - MONTSERRAT */
     html, body, [class*="css"], .stMarkdown, .stRadio, .stSelectbox, .stTextInput, .stMultiSelect, div, span, p {
         font-family: 'Montserrat', sans-serif !important;
         font-weight: 400 !important; 
@@ -27,7 +27,7 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* NAGŁÓWKI - CORMORANT GARAMOND */
+    /* HEADERS - CORMORANT GARAMOND */
     h1, h2, h3 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -53,13 +53,13 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- CENTROWANIE WIDGETÓW (POPRAWIONE) --- */
+    /* --- WIDGET CENTERING (FIXED) --- */
     
-    /* 1. Selectbox i MultiSelect (Nuty) */
+    /* 1. Selectbox & MultiSelect (Notes) */
     .stSelectbox, .stMultiSelect { max-width: 650px; margin: 0 auto !important; }
     .stSelectbox div[data-baseweb="select"] > div { text-align: center; }
     
-    /* 2. Radio Buttons (Quality Tier) - WYMUSZENIE ŚRODKA */
+    /* 2. Radio Buttons (Quality Tier) - FORCE CENTER */
     div[data-testid="stRadio"] {
         width: 100%;
         display: flex;
@@ -71,7 +71,7 @@ st.markdown("""
         gap: 25px;
     }
 
-    /* 3. Checkbox (Top Rated) - TOTALNE CENTROWANIE */
+    /* 3. Checkbox (Top Rated) - TOTAL CENTERING */
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
@@ -79,13 +79,13 @@ st.markdown("""
         margin-top: 15px;
         margin-bottom: 15px;
     }
-    /* Centruje samą etykietę wewnątrz kontenera */
+    /* Centers the label itself within the container */
     div[data-testid="stCheckbox"] label {
         width: auto !important;
         margin: 0 auto;
     }
 
-    /* METRYKI */
+    /* METRICS */
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.3);
         background-color: rgba(255, 255, 255, 0.01);
@@ -96,7 +96,7 @@ st.markdown("""
     .metric-label { color: #D4AF37 !important; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 600 !important; }
     .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.8rem, 4vw, 2.4rem); color: #F0E68C !important; font-weight: 300; margin-top: 5px; }
 
-    /* KARTY */
+    /* CARDS */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.15);
         background: rgba(12, 12, 12, 0.9);
@@ -125,39 +125,39 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- CZYSZCZENIE DANYCH ---
+        # --- DATA CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip().str.upper()
 
-        # Usuwamy indeksy "001-", "01-"
+        # Remove indexes like "001-", "01-"
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
 
-        # Usuwamy "0 " na początku
+        # Remove leading "0 "
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
 
-        # Usuwamy same liczby
+        # Remove entries that are just numbers
         df = df[~df['Name'].str.match(r'^\d+$')]
 
-        # Formatowanie
+        # Formatting
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ')
         
-        # Usuń puste
+        # Remove empty
         df = df[df['Name'].str.len() > 1]
         
-        # Oceny
+        # Ratings
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
-        # Nuty
+        # Notes
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         
-        # Index
+        # Search Index
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
         
-        # Sortowanie (Marka -> Nazwa)
+        # Sort (Brand -> Name)
         df = df.sort_values(by=['Brand', 'Name'])
         
         return df
@@ -165,11 +165,11 @@ def load_data():
         return None
 
 def get_all_notes(df):
-    # Funkcja wyciągająca unikalne nuty do listy rozwijanej
+    # Function to extract unique notes for the dropdown
     notes_set = set()
     if 'Main Accords' in df.columns:
         for accords in df['Main Accords'].dropna():
-            # Rozdzielamy po przecinku i czyścimy spacje
+            # Split by comma and strip whitespace
             parts = [x.strip() for x in accords.split(',')]
             for p in parts:
                 if p:
@@ -180,7 +180,7 @@ def main():
     df = load_data()
     if df is None: return
 
-    # Pobierz listę wszystkich nut do podpowiedzi
+    # Get list of all notes for autocomplete
     all_notes_list = get_all_notes(df)
 
     with st.sidebar:
@@ -227,18 +227,18 @@ def main():
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
         
-        # --- CHECKBOX: TRZYKROTNE CENTROWANIE ---
-        # 1. Kolumny (ściśnięcie)
+        # --- CHECKBOX: TRIPLE CENTERING ---
+        # 1. Columns (squeezing)
         cb_col1, cb_col2, cb_col3 = st.columns([1.5, 1, 1.5]) 
         with cb_col2:
-            # Checkbox w wąskiej kolumnie
+            # Checkbox in a narrow column
             top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.7rem; letter-spacing:2px; font-weight:bold; margin-top:20px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
         tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
         
-        # --- ZMIANA: MULTISELECT Z PODPOWIEDZIAMI ---
-        # Zamiast text_input, używamy st.multiselect. To daje "autocomplete".
+        # --- CHANGE: MULTISELECT WITH AUTOCOMPLETE ---
+        # Using st.multiselect instead of text_input for autocomplete
         selected_notes = st.multiselect(
             "", 
             options=all_notes_list, 
@@ -253,7 +253,7 @@ def main():
         elif tier_choice == "Premium (4.0 - 4.5)": filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
         elif tier_choice == "Classic Collection": filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
         
-        # LOGIKA FILTROWANIA PO NUTACH (MULTISELECT)
+        # NOTE FILTERING LOGIC (MULTISELECT)
         if selected_notes:
             for note in selected_notes:
                 filtered = filtered[filtered['Search_Index'].str.contains(note.lower())]
