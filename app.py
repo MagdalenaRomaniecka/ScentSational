@@ -19,6 +19,7 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
+    /* CENTERED RESPONSIVE HEADER */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -41,18 +42,10 @@ st.markdown("""
     }
 
     /* SIDEBAR LUXURY BOX */
-    [data-testid="stSidebar"] {
-        background-color: #0a0a0a !important;
-        border-right: 1px solid rgba(212, 175, 55, 0.2);
-    }
-    .sidebar-gold-box {
-        border: 1px solid #D4AF37;
-        padding: 20px;
-        background: rgba(212, 175, 55, 0.05);
-        text-align: center;
-        margin-bottom: 20px;
-    }
+    [data-testid="stSidebar"] { background-color: #0a0a0a !important; border-right: 1px solid rgba(212, 175, 55, 0.2); }
+    .sidebar-gold-box { border: 1px solid #D4AF37; padding: 20px; background: rgba(212, 175, 55, 0.05); text-align: center; margin-bottom: 20px; }
 
+    /* CENTERED METRICS */
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.3);
         background-color: rgba(255, 255, 255, 0.01);
@@ -63,6 +56,7 @@ st.markdown("""
     .metric-label { color: #D4AF37; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; }
     .metric-value { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); color: #F0E68C; font-weight: 300; }
 
+    /* PERFUME CARD - CENTERED */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.15);
         background: rgba(10, 10, 10, 0.8);
@@ -75,9 +69,15 @@ st.markdown("""
     .row-brand { font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 900; letter-spacing: 6px; color: #D4AF37; margin-bottom: 6px; text-transform: uppercase; }
     .row-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 4vw, 1.7rem); color: #fff; margin-bottom: 15px; font-style: italic; }
     
+    /* INPUTS & FILTERS CENTERING */
     div[data-testid="stRadio"] > div { justify-content: center; flex-wrap: wrap; gap: 15px; }
-    div[data-testid="stRadio"] label { color: #D4AF37 !important; font-size: 0.8rem !important; }
-    .stSelectbox, .stTextInput { max-width: 700px; margin: 0 auto; text-align: center; }
+    div[data-testid="stRadio"] label { color: #D4AF37 !important; font-size: 0.8rem !important; letter-spacing: 1px; }
+    
+    /* Force inputs to be centered nicely */
+    .stSelectbox, .stTextInput { max-width: 600px; margin: 0 auto !important; }
+    div[data-baseweb="select"] { text-align: center; }
+    
+    .stCheckbox { display: flex; justify-content: center; margin: 15px 0; }
     
     .stTabs [data-baseweb="tab-list"] { gap: clamp(15px, 4vw, 40px); justify-content: center; }
     .stTabs [data-baseweb="tab"] { color: #666 !important; letter-spacing: 2px; text-transform: uppercase; font-size: 0.85rem;}
@@ -91,26 +91,41 @@ def load_data():
         df = pd.read_csv('scentsational_data.csv', sep=None, encoding='latin1', engine='python')
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
-        df['Name'] = df['Name'].fillna("Unknown").astype(str).str.strip().str.title()
-        df['Brand'] = df['Brand'].fillna("Unknown").astype(str).str.strip().str.upper()
+        
+        # --- DATA CLEANING ENGINE ---
+        # 1. Zamiana myślników na spacje (np. Interlude-Woman -> Interlude Woman)
+        df['Name'] = df['Name'].astype(str).str.replace('-', ' ').str.strip().str.title()
+        df['Brand'] = df['Brand'].astype(str).str.replace('-', ' ').str.strip().str.upper()
+        
+        # 2. Usunięcie rekordów, gdzie nazwa to tylko liczby (np. "0", "9", "001")
+        # Jeśli konwersja na liczbę się uda, to znaczy że to śmieć, więc usuwamy.
+        is_number = pd.to_numeric(df['Name'], errors='coerce').notna()
+        df = df[~is_number]
+        
+        # 3. Formatowanie ocen
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
+        # 4. Łączenie nut
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
+        
+        # 5. Indeks wyszukiwania
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
+        
         return df
-    except: return None
+    except Exception as e:
+        return None
 
 def main():
     df = load_data()
     if df is None: return
 
-    # SIDEBAR RECOVERY
+    # SIDEBAR
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
-        st.write("Unlock the neural network to find scents based on chemical DNA.")
+        st.write("Unlock chemical DNA search.")
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.75rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -132,38 +147,55 @@ def main():
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.85rem; letter-spacing:2px; font-weight:bold;'>TOP DESIGNERS</p>", unsafe_allow_html=True)
             top_b = df['Brand'].value_counts().head(10)
             fig = px.bar(x=top_b.values, y=top_b.index, orientation='h', color_discrete_sequence=['#D4AF37'])
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed'}, margin=dict(l=0,r=0,t=0,b=0), xaxis_title="")
+            # USUWAMY LABELE X/Y
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
         with c2:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.85rem; letter-spacing:2px; font-weight:bold;'>OLFACTORY LANDSCAPE</p>", unsafe_allow_html=True)
             top_a = df['mainaccord1'].value_counts().head(10)
             fig2 = px.bar(x=top_a.values, y=top_a.index, orientation='h', color_discrete_sequence=['#C5A059'])
-            fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed'}, margin=dict(l=0,r=0,t=0,b=0), xaxis_title="")
+            # USUWAMY LABELE X/Y
+            fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig2, use_container_width=True, config={'staticPlot': True})
         with c3:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.85rem; letter-spacing:2px; font-weight:bold;'>SCORE DISTRIBUTION</p>", unsafe_allow_html=True)
             score_data = pd.cut(df[df['Rating Value'] > 0]['Rating Value'], bins=[0, 3.5, 4.2, 5], labels=['Standard', 'Premium', 'Masterpiece'])
-            fig3 = px.pie(score_data.value_counts().reset_index(), values='count', names='Rating Value', hole=0.6, color_discrete_sequence=['#856a35', '#C5A059', '#D4AF37'])
+            # LEPSZE KOLORY (KONTRAST)
+            fig3 = px.pie(score_data.value_counts().reset_index(), values='count', names='Rating Value', hole=0.6, color_discrete_sequence=['#2C2C2C', '#96792e', '#F0E68C'])
             fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
             st.plotly_chart(fig3, use_container_width=True)
 
     with tab_cat:
         st.markdown("<div style='text-align:center; color:#666; font-size:0.8rem; margin-bottom:12px; letter-spacing:3px;'>SEARCH THE ARCHIVES</div>", unsafe_allow_html=True)
+        
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
+        
         top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.75rem; letter-spacing:2px; font-weight:bold; margin-top:10px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
         tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
+        
         note_filter = st.text_input("", placeholder="Filter by notes (e.g. Vanilla, Oud)...", label_visibility="collapsed")
 
         filtered = df.copy()
-        if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
-        if top_only: filtered = filtered[filtered['Rating Value'] >= 4.5]
-        if tier_choice == "Masterpieces (4.5+)": filtered = filtered[filtered['Rating Value'] >= 4.5]
-        elif tier_choice == "Premium (4.0 - 4.5)": filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
-        elif tier_choice == "Classic Collection": filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
-        if note_filter: filtered = filtered[filtered['Search_Index'].str.contains(note_filter.lower())]
+        
+        # LOGIKA FILTROWANIA
+        if selected: 
+            filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
+        
+        if top_only: 
+            filtered = filtered[filtered['Rating Value'] >= 4.5]
+        
+        if tier_choice == "Masterpieces (4.5+)": 
+            filtered = filtered[filtered['Rating Value'] >= 4.5]
+        elif tier_choice == "Premium (4.0 - 4.5)": 
+            filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
+        elif tier_choice == "Classic Collection": 
+            filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
+        
+        if note_filter: 
+            filtered = filtered[filtered['Search_Index'].str.contains(note_filter.lower())]
 
         st.markdown(f"<p style='text-align:center; color:#555; margin-top:25px; letter-spacing:2px;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
 
