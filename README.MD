@@ -50,31 +50,39 @@ This project utilizes a **Decoupled Architecture** strategy to optimize performa
 
 ## 🚀 Key Features
 
-* **Market Insights** – Interactive analytics featuring Top Designers, Olfactory Landscapes, and Score Distribution.
-* **The Collection** – Smart search with auto-suggestions for seamless discovery of 24,000+ scents.
-* **Quality Tier Selector** – One-click grouping into Masterpieces (4.5+), Premium (4.0-4.5), and Standard artifacts.
-* **Note Filtering** – Refine your search by specific ingredients like Vanilla, Oud, or Musk.
-* **Mobile Optimized** – A high-end experience tailored for both large screens and mobile devices.
+* **Market Insights** – Interactive analytics featuring Top Designers, Olfactory Landscapes, and Score Distribution in a high-contrast gold theme.
+* **Discover Scents** – A streamlined search engine allowing you to explore over 24,000 fragrances.
+* **Smart Filtering** – Horizontal Quality Tier selector and intelligent autocomplete for olfactory notes (e.g., Oud, Vetiver).
+* **Strict Mode** – A dedicated toggle to instantly filter for the "Crème de la Crème" (Rating 4.5+).
+* **Mobile Optimized** – A "Compact Minimalism" UI tailored for seamless use on smartphones.
 ---
 
 ## 📊 Analytics & Insights
 
-Before deployment, the underlying dataset (`scentsational_data.csv`) underwent rigorous Exploratory Data Analysis (EDA).
+The application provides a deep dive into the fragrance market through three key visualizations, styled in the platform's signature "Dark Luxury" aesthetic.
 
-### The Olfactory Landscape
-We mapped the frequency of primary accords across the database. As shown below, the market is currently dominated by **Citrus, Woody, and Fruity** profiles, indicating a consumer shift towards fresh and grounded scents.
+### 1. The Olfactory Landscape
+We mapped the frequency of primary accords across the database. As shown below, the market is currently dominated by **Citrus, Woody, and Fruity** profiles, indicating a consumer preference for fresh and grounded scents.
 
 <div align="center">
   <img src="assets/olfactory_landscape.png" alt="Olfactory Landscape Chart" width="800">
-  <p><i>Figure 1: Distribution of dominant olfactory accords in the curated dataset.</i></p>
+  <p><i>Figure 1: Distribution of dominant olfactory accords.</i></p>
 </div>
 
-### Top Designer Analysis
-Beyond olfactory notes, we analyzed market presence by brand. The dataset highlights a mix of high-volume commercial giants (Avon, Zara) alongside heritage luxury houses (Guerlain, Dior), showcasing the diverse range of the collection.
+### 2. Top Designer Analysis
+We analyzed market presence by brand volume. The dataset highlights a mix of high-volume commercial giants (Avon, Zara) alongside heritage luxury houses, showcasing the diverse range of the collection.
 
 <div align="center">
   <img src="assets/top_designers.png" alt="Top Designers Chart" width="800">
-  <p><i>Figure 2: Top 10 designers by number of fragrances in the database.</i></p>
+  <p><i>Figure 2: Top 10 designers by number of fragrances.</i></p>
+</div>
+
+### 3. Quality Distribution
+The "Score Distribution" reveals a discerning community. Only **18.2%** of fragrances achieve the "Masterpiece" status (4.5+ rating), while the majority fall into the "Standard" category, highlighting the exclusivity of top-tier scents.
+
+<div align="center">
+  <img src="assets/score_distribution.png" alt="Score Distribution Chart" width="800">
+  <p><i>Figure 3: Breakdown of fragrances by rating tiers (Standard, Premium, Masterpiece).</i></p>
 </div>
 ---
 
