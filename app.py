@@ -65,53 +65,54 @@ st.markdown("""
 
     /* --- WIDGET STYLING --- */
     
-    /* INPUTS (Search & Notes) */
-    .stSelectbox, .stMultiSelect { max-width: 100%; }
+    /* UNIFIED WIDTH FIX: Elements will fill their container */
+    .stSelectbox, .stMultiSelect, .stRadio { 
+        width: 100% !important;
+    }
     
-    /* Golden Borders for Inputs to pop against black */
+    /* Golden Borders */
     .stSelectbox div[data-baseweb="select"] > div,
     .stMultiSelect div[data-baseweb="select"] > div {
         border: 1px solid rgba(212, 175, 55, 0.4) !important;
+        background-color: rgba(10, 10, 10, 0.5) !important;
     }
 
-    /* Hide standard labels for search bars */
+    /* Hide standard labels */
     .stSelectbox label, .stMultiSelect label {
         display: none;
     }
 
-    /* RADIO BUTTONS (TIER SELECTOR) - VISIBLE & CENTERED */
-    div[data-testid="stRadio"] {
-        background: transparent;
-    }
+    /* RADIO BUTTONS - TIGHT & CENTERED */
     div[data-testid="stRadio"] > div {
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 30px; /* Space between radio options */
+        display: flex;
+        justify-content: center; /* Center buttons inside the container */
+        gap: 20px;
+        width: 100%;
+        margin-bottom: 10px;
     }
     div[data-testid="stRadio"] label p {
-        font-size: 1rem !important; /* Bigger text */
-        color: #D4AF37 !important; /* Gold text */
+        font-size: 0.85rem !important; /* Unified font size */
+        color: #D4AF37 !important; 
+        font-weight: 500 !important;
     }
 
-    /* TOGGLE SWITCH - HIGH VISIBILITY FIX */
+    /* TOGGLE SWITCH - CENTERED PILL */
     div[data-testid="stToggle"] {
         justify-content: center;
-        margin-top: 20px;
-        padding: 10px;
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        border-radius: 50px; /* Pill shape */
+        margin-top: 15px;
+        padding: 8px 20px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 50px;
         background: rgba(212, 175, 55, 0.05);
         width: fit-content;
         margin-left: auto;
         margin-right: auto;
     }
-    /* Target the Toggle Label specifically */
     div[data-testid="stToggle"] label p {
-        font-size: 1rem !important;
-        font-weight: 700 !important; /* BOLD */
-        color: #D4AF37 !important; /* GOLD */
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #D4AF37 !important;
         letter-spacing: 1px;
-        text-transform: uppercase;
     }
 
     /* METRICS */
@@ -191,7 +192,6 @@ def main():
     if df is None: return
     all_notes_list = get_all_notes(df)
 
-    # Sidebar
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
@@ -199,13 +199,11 @@ def main():
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Header
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div class="sub-header">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
     # TABS
     tab_an, tab_cat = st.tabs(["MARKET INSIGHTS", "DISCOVER SCENTS"])
 
-    # --- ANALYTICS TAB ---
     with tab_an:
         m1, m2, m3, m4 = st.columns([1,1,1,1])
         m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
@@ -235,50 +233,56 @@ def main():
             fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
             st.plotly_chart(fig3, use_container_width=True)
 
-    # --- TAB 2: DISCOVER (Filters Restored) ---
+    # --- TAB 2: DISCOVER (PERFECTLY ALIGNED) ---
     with tab_cat:
         st.write("") 
 
-        # 1. TIER SELECTOR (Restored & Visible)
-        # Using a custom label to make it clear what this is
-        st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 5px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
-        tier_choice = st.radio(
-            "TIER_SELECTOR_VISIBLE", 
-            ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
-            horizontal=True,
-            label_visibility="collapsed"
-        )
-        
-        st.write("") 
-        
-        # 2. SEARCH & NOTES
-        col_s1, col_s2 = st.columns([1.5, 1])
-        
-        with col_s1:
-            selected = st.selectbox(
-                "SEARCH_HIDDEN",
-                options=sorted(list(df['Name'].unique()) + list(df['Brand'].unique())),
-                index=None,
-                placeholder="🔍 Search Brand or Name...",
+        # --- THE CONTAINER STRATEGY ---
+        # Instead of putting widgets loosely, we use columns to create a centered "stage"
+        # [ Spacer 10% ] [ MAIN CONTENT 80% ] [ Spacer 10% ]
+        fill_left, center_stage, fill_right = st.columns([1, 8, 1])
+
+        with center_stage:
+            # 1. Quality Tier Title (Small & Centered)
+            st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 10px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
+            
+            # 2. Radio Buttons (Now constrained to the center stage width)
+            tier_choice = st.radio(
+                "TIER_SELECTOR_VISIBLE", 
+                ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
+                horizontal=True,
                 label_visibility="collapsed"
             )
             
-        with col_s2:
-            selected_notes = st.multiselect(
-                "NOTES_HIDDEN",
-                options=all_notes_list,
-                placeholder="🧪 Filter by Notes...",
-                label_visibility="collapsed"
-            )
+            st.write("") # Spacer
 
-        # 3. STRICT MODE TOGGLE (Bold & Gold)
-        top_only = st.toggle("Strict Mode (4.5+ Only)")
+            # 3. Search & Notes (Inside the same container, ensuring perfect alignment)
+            col_s1, col_s2 = st.columns([1.5, 1], gap="medium")
+            
+            with col_s1:
+                selected = st.selectbox(
+                    "SEARCH_HIDDEN",
+                    options=sorted(list(df['Name'].unique()) + list(df['Brand'].unique())),
+                    index=None,
+                    placeholder="🔍 Search Brand or Name...",
+                    label_visibility="collapsed"
+                )
+                
+            with col_s2:
+                selected_notes = st.multiselect(
+                    "NOTES_HIDDEN",
+                    options=all_notes_list,
+                    placeholder="🧪 Filter by Notes...",
+                    label_visibility="collapsed"
+                )
 
-        # FILTER LOGIC
+            # 4. Strict Mode Toggle (Centered inside the stage)
+            top_only = st.toggle("Strict Mode (4.5+ Only)")
+
+        # LOGIC
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         
-        # Dual Logic: Toggle OR Tier choice
         if top_only: 
             filtered = filtered[filtered['Rating Value'] >= 4.5]
         
