@@ -63,45 +63,46 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- WIDGET STYLING --- */
+    /* --- WIDGET STYLING & ALIGNMENT --- */
     
-    /* UNIFIED WIDTH FIX: Elements will fill their container */
-    .stSelectbox, .stMultiSelect, .stRadio { 
-        width: 100% !important;
-    }
+    /* 1. INPUTS (Search & Notes) */
+    .stSelectbox, .stMultiSelect { width: 100%; }
     
     /* Golden Borders */
     .stSelectbox div[data-baseweb="select"] > div,
     .stMultiSelect div[data-baseweb="select"] > div {
         border: 1px solid rgba(212, 175, 55, 0.4) !important;
-        background-color: rgba(10, 10, 10, 0.5) !important;
+        background-color: rgba(10, 10, 10, 0.6) !important;
     }
 
     /* Hide standard labels */
-    .stSelectbox label, .stMultiSelect label {
-        display: none;
-    }
+    .stSelectbox label, .stMultiSelect label { display: none; }
 
-    /* RADIO BUTTONS - TIGHT & CENTERED */
+    /* 2. RADIO BUTTONS (TIER SELECTOR) - COMPACT & CENTERED */
+    div[data-testid="stRadio"] {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
     div[data-testid="stRadio"] > div {
         display: flex;
-        justify-content: center; /* Center buttons inside the container */
-        gap: 20px;
-        width: 100%;
-        margin-bottom: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px; /* Tighter gap for unification */
     }
     div[data-testid="stRadio"] label p {
-        font-size: 0.85rem !important; /* Unified font size */
-        color: #D4AF37 !important; 
+        font-size: 0.85rem !important;
+        color: #D4AF37 !important;
         font-weight: 500 !important;
     }
 
-    /* TOGGLE SWITCH - CENTERED PILL */
+    /* 3. TOGGLE SWITCH - CENTERED */
     div[data-testid="stToggle"] {
         justify-content: center;
-        margin-top: 15px;
-        padding: 8px 20px;
-        border: 1px solid rgba(212, 175, 55, 0.3);
+        margin-top: 20px;
+        padding: 8px 25px;
+        border: 1px solid rgba(212, 175, 55, 0.2);
         border-radius: 50px;
         background: rgba(212, 175, 55, 0.05);
         width: fit-content;
@@ -109,7 +110,7 @@ st.markdown("""
         margin-right: auto;
     }
     div[data-testid="stToggle"] label p {
-        font-size: 0.85rem !important;
+        font-size: 0.9rem !important;
         font-weight: 600 !important;
         color: #D4AF37 !important;
         letter-spacing: 1px;
@@ -156,15 +157,20 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- CLEANING ---
+        # --- DATA CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip()
+        
+        # Remove artifacts
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
         df = df[~df['Name'].str.match(r'^\d+$')]
+        
+        # Title Case
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
+        
         df = df[df['Name'].str.len() > 1]
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
@@ -233,30 +239,27 @@ def main():
             fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
             st.plotly_chart(fig3, use_container_width=True)
 
-    # --- TAB 2: DISCOVER (PERFECTLY ALIGNED) ---
+    # --- TAB 2: DISCOVER (Central Alignment Strategy) ---
     with tab_cat:
         st.write("") 
 
-        # --- THE CONTAINER STRATEGY ---
-        # Instead of putting widgets loosely, we use columns to create a centered "stage"
-        # [ Spacer 10% ] [ MAIN CONTENT 80% ] [ Spacer 10% ]
-        fill_left, center_stage, fill_right = st.columns([1, 8, 1])
+        # We create 3 columns: Left Spacer, CENTER STAGE (60%), Right Spacer
+        # This keeps everything tightly aligned in the middle.
+        fill_left, center_stage, fill_right = st.columns([1, 4, 1])
 
         with center_stage:
-            # 1. Quality Tier Title (Small & Centered)
-            st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 10px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
-            
-            # 2. Radio Buttons (Now constrained to the center stage width)
+            # 1. Tier Selector
+            st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 5px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
             tier_choice = st.radio(
-                "TIER_SELECTOR_VISIBLE", 
+                "TIER_SELECTOR", 
                 ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
                 horizontal=True,
                 label_visibility="collapsed"
             )
             
-            st.write("") # Spacer
-
-            # 3. Search & Notes (Inside the same container, ensuring perfect alignment)
+            st.write("") 
+            
+            # 2. Search & Notes - Combined Row
             col_s1, col_s2 = st.columns([1.5, 1], gap="medium")
             
             with col_s1:
@@ -276,10 +279,10 @@ def main():
                     label_visibility="collapsed"
                 )
 
-            # 4. Strict Mode Toggle (Centered inside the stage)
+            # 3. Strict Mode Toggle
             top_only = st.toggle("Strict Mode (4.5+ Only)")
 
-        # LOGIC
+        # Logic
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         
