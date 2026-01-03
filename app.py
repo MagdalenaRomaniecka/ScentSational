@@ -53,13 +53,13 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- WIDGET CENTERING (FIXED) --- */
+    /* --- WIDGET CENTERING --- */
     
-    /* 1. Selectbox & MultiSelect (Notes) */
+    /* 1. Selectbox & MultiSelect */
     .stSelectbox, .stMultiSelect { max-width: 650px; margin: 0 auto !important; }
     .stSelectbox div[data-baseweb="select"] > div { text-align: center; }
     
-    /* 2. Radio Buttons (Quality Tier) - FORCE CENTER */
+    /* 2. Radio Buttons - FORCE CENTER */
     div[data-testid="stRadio"] {
         width: 100%;
         display: flex;
@@ -71,7 +71,7 @@ st.markdown("""
         gap: 25px;
     }
 
-    /* 3. Checkbox (Top Rated) - TOTAL CENTERING */
+    /* 3. Checkbox - TOTAL CENTERING */
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
@@ -79,7 +79,6 @@ st.markdown("""
         margin-top: 15px;
         margin-bottom: 15px;
     }
-    /* Centers the label itself within the container */
     div[data-testid="stCheckbox"] label {
         width: auto !important;
         margin: 0 auto;
@@ -106,7 +105,15 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
-    .row-brand { font-size: clamp(1.4rem, 5vw, 1.8rem); font-weight: 600 !important; letter-spacing: 5px; color: #D4AF37 !important; margin-bottom: 10px; text-transform: uppercase; }
+    /* Brand is now standardized, removing text-transform: uppercase allows Title Case */
+    .row-brand { 
+        font-size: clamp(1.4rem, 5vw, 1.8rem); 
+        font-weight: 600 !important; 
+        letter-spacing: 5px; 
+        color: #D4AF37 !important; 
+        margin-bottom: 10px; 
+        /* text-transform: uppercase;  <-- REMOVED TO ALLOW TITLE CASE */
+    }
     .row-name { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.3rem, 4vw, 1.8rem); color: #fff !important; margin-bottom: 20px; font-style: italic; }
     
     [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
@@ -125,25 +132,25 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- DATA CLEANING ---
+        # --- DATA CLEANING & STANDARDIZATION ---
         df['Name'] = df['Name'].astype(str).str.strip()
-        df['Brand'] = df['Brand'].astype(str).str.strip().str.upper()
+        df['Brand'] = df['Brand'].astype(str).str.strip() 
 
-        # Remove indexes like "001-", "01-"
+        # 1. Remove indexes (e.g., "001-")
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
 
-        # Remove leading "0 "
+        # 2. Remove leading "0 "
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
 
-        # Remove entries that are just numbers
+        # 3. Remove numeric-only entries
         df = df[~df['Name'].str.match(r'^\d+$')]
 
-        # Formatting
+        # 4. ENFORCE TITLE CASE (Fixes "ANGEL SCHLESSER" -> "Angel Schlesser")
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
-        df['Brand'] = df['Brand'].str.replace('-', ' ')
+        df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
         
-        # Remove empty
+        # 5. Remove short garbage entries
         df = df[df['Name'].str.len() > 1]
         
         # Ratings
@@ -165,11 +172,9 @@ def load_data():
         return None
 
 def get_all_notes(df):
-    # Function to extract unique notes for the dropdown
     notes_set = set()
     if 'Main Accords' in df.columns:
         for accords in df['Main Accords'].dropna():
-            # Split by comma and strip whitespace
             parts = [x.strip() for x in accords.split(',')]
             for p in parts:
                 if p:
@@ -180,7 +185,6 @@ def main():
     df = load_data()
     if df is None: return
 
-    # Get list of all notes for autocomplete
     all_notes_list = get_all_notes(df)
 
     with st.sidebar:
@@ -227,18 +231,14 @@ def main():
         search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
         selected = st.selectbox("", options=search_options, index=None, placeholder="Search by brand or perfume name...", label_visibility="collapsed")
         
-        # --- CHECKBOX: TRIPLE CENTERING ---
-        # 1. Columns (squeezing)
+        # --- CHECKBOX CENTERING ---
         cb_col1, cb_col2, cb_col3 = st.columns([1.5, 1, 1.5]) 
         with cb_col2:
-            # Checkbox in a narrow column
             top_only = st.checkbox("Show Only Top Rated (4.5+)")
 
         st.markdown("<p style='text-align:center; color:#D4AF37; font-size:0.7rem; letter-spacing:2px; font-weight:bold; margin-top:20px;'>QUALITY TIER SELECTOR</p>", unsafe_allow_html=True)
         tier_choice = st.radio("", ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0 - 4.5)", "Classic Collection"], horizontal=True, label_visibility="collapsed")
         
-        # --- CHANGE: MULTISELECT WITH AUTOCOMPLETE ---
-        # Using st.multiselect instead of text_input for autocomplete
         selected_notes = st.multiselect(
             "", 
             options=all_notes_list, 
@@ -253,7 +253,6 @@ def main():
         elif tier_choice == "Premium (4.0 - 4.5)": filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
         elif tier_choice == "Classic Collection": filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
         
-        # NOTE FILTERING LOGIC (MULTISELECT)
         if selected_notes:
             for note in selected_notes:
                 filtered = filtered[filtered['Search_Index'].str.contains(note.lower())]
