@@ -12,7 +12,7 @@ st.cache_data.clear()
 
 st.markdown("""
     <style>
-    /* FONT IMPORT */
+    /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
 
     /* GLOBAL FONT ENFORCEMENT */
@@ -28,7 +28,7 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* --- COMPACT HEADER (Smaller & Elegant) --- */
+    /* --- HEADER STYLING --- */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -36,7 +36,6 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
-        /* Smaller font size for mobile/desktop balance */
         font-size: clamp(2rem, 5vw, 3.5rem) !important; 
         text-transform: uppercase;
         letter-spacing: clamp(4px, 1vw, 8px);
@@ -64,28 +63,43 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- MODERN WIDGETS --- */
+    /* --- HIGH VISIBILITY FILTERS --- */
     
-    /* Input Fields */
-    .stSelectbox, .stMultiSelect { max-width: 700px; margin: 0 auto !important; }
+    /* Container for inputs */
+    .stSelectbox, .stMultiSelect { 
+        max-width: 100%; 
+    }
     
-    /* Hide default Streamlit labels for a cleaner look */
+    /* Make Input Boxes POP with a border and background */
+    .stSelectbox div[data-baseweb="select"] > div,
+    .stMultiSelect div[data-baseweb="select"] > div {
+        background-color: #0e0e0e !important;
+        border: 1px solid #D4AF37 !important; /* Gold Border */
+        border-radius: 4px !important;
+        color: #fff !important;
+    }
+    
+    /* Hide default labels */
     .stSelectbox label, .stMultiSelect label, .stRadio label {
         display: none;
     }
 
-    /* Toggle Switch (Replaces Checkbox) */
+    /* Toggle Switch styling */
     div[data-testid="stToggle"] {
         justify-content: center;
         margin-top: 10px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        padding: 10px;
+        border-radius: 4px;
+        background: rgba(212, 175, 55, 0.05);
     }
     div[data-testid="stToggle"] label {
         display: block !important;
         color: #D4AF37 !important;
-        font-size: 0.8rem !important;
+        font-weight: 600 !important;
     }
 
-    /* METRICS */
+    /* METRICS (Only for Market Insights now) */
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.2);
         background-color: rgba(255, 255, 255, 0.01);
@@ -126,45 +140,28 @@ def load_data():
         df.columns = df.columns.str.strip()
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
-        # --- DATA CLEANING ---
+        # --- CLEANING ---
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip()
-        
-        # 1. Remove indexes like "001-", "01-"
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
-        
-        # 2. Remove leading "0 "
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
-        
-        # 3. Remove numeric-only entries
         df = df[~df['Name'].str.match(r'^\d+$')]
-        
-        # 4. Apply Title Case
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
-        
-        # 5. Remove empty/short entries
         df = df[df['Name'].str.len() > 1]
-        
-        # Numeric conversion
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
         existing = [c for c in accord_cols if c in df.columns]
         df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
-        
-        # Search Index creation
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
-        
-        # Sort by Brand then Name
         df = df.sort_values(by=['Brand', 'Name'])
         return df
     except Exception as e:
         return None
 
 def get_all_notes(df):
-    # Extract unique notes for the dropdown
     notes_set = set()
     if 'Main Accords' in df.columns:
         for accords in df['Main Accords'].dropna():
@@ -179,7 +176,7 @@ def main():
     if df is None: return
     all_notes_list = get_all_notes(df)
 
-    # Sidebar Configuration
+    # Sidebar
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
@@ -187,19 +184,23 @@ def main():
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Main Header
+    # Main Header (Visible everywhere)
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div class="sub-header">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
-    # KPI Metrics
-    m1, m2, m3, m4 = st.columns([1,1,1,1])
-    m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
-    m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
-    m3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{df["mainaccord1"].mode()[0].capitalize()}</div></div>', unsafe_allow_html=True)
-    m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df[df["Rating Value"] > 0]["Rating Value"].mean():.2f}</div></div>', unsafe_allow_html=True)
+    # TABS: Changed name to "DISCOVER SCENTS"
+    tab_an, tab_cat = st.tabs(["MARKET INSIGHTS", "DISCOVER SCENTS"])
 
-    tab_an, tab_cat = st.tabs(["MARKET INSIGHTS", "THE COLLECTION"])
-
+    # --- TAB 1: ANALYTICS (Metrics are here now) ---
     with tab_an:
+        # Metrics moved INSIDE this tab
+        m1, m2, m3, m4 = st.columns([1,1,1,1])
+        m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
+        m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
+        m3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{df["mainaccord1"].mode()[0].capitalize()}</div></div>', unsafe_allow_html=True)
+        m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df[df["Rating Value"] > 0]["Rating Value"].mean():.2f}</div></div>', unsafe_allow_html=True)
+        
+        st.write("") # Spacer
+
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.75rem; letter-spacing:2px; font-weight:bold;'>TOP DESIGNERS</p>", unsafe_allow_html=True)
@@ -220,12 +221,11 @@ def main():
             fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
             st.plotly_chart(fig3, use_container_width=True)
 
+    # --- TAB 2: DISCOVER SCENTS (No metrics, just search) ---
     with tab_cat:
         st.write("") 
 
-        # --- MODERN FILTERING SYSTEM (Compact) ---
-        
-        # 1. Category Bar (Horizontal)
+        # 1. Tier Selector
         tier_choice = st.radio(
             "TIER_SELECTOR_HIDDEN", 
             ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
@@ -235,7 +235,7 @@ def main():
         
         st.write("") 
         
-        # 2. Search & Notes in one line
+        # 2. High Visibility Search & Notes
         col_s1, col_s2 = st.columns([1.5, 1])
         
         with col_s1:
@@ -255,12 +255,12 @@ def main():
                 label_visibility="collapsed"
             )
 
-        # 3. Modern Toggle Switch
+        # 3. Strict Mode Toggle
         tg_c1, tg_c2, tg_c3 = st.columns([2, 1, 2])
         with tg_c2:
             top_only = st.toggle("Strict Mode: Top Rated Only")
 
-        # FILTER LOGIC
+        # Logic
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         
