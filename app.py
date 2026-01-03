@@ -1,23 +1,16 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import re
+import plotly.express as px
 
 # -----------------------------------------------------------------------------
-# 1. LUXURY CONFIGURATION & STYLING
+# 1. LUXURY CONFIGURATION
 # -----------------------------------------------------------------------------
-# This function MUST be the first Streamlit command in the script
 st.set_page_config(page_title="ScentSational | Atelier", layout="wide")
 
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
-
-    /* ANIMATIONS */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
 
     .stApp {
         background-color: #050505;
@@ -26,7 +19,6 @@ st.markdown("""
         font-family: 'Lato', sans-serif;
     }
 
-    /* HEADER STYLING WITH TEXT GRADIENT */
     h1 {
         font-family: 'Playfair Display', serif !important;
         background: linear-gradient(to bottom, #D4AF37 0%, #F0E68C 100%);
@@ -37,81 +29,41 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 7px;
         margin-bottom: 0px;
-        text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     }
 
     .header-frame {
         border: 1px solid rgba(212, 175, 55, 0.3);
         padding: 40px;
-        margin-bottom: 50px;
+        margin-bottom: 30px;
         background: rgba(10, 10, 10, 0.6);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 20px rgba(212, 175, 55, 0.05);
-        animation: fadeIn 1.5s ease-out;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.8);
     }
 
-    /* LUXURY RESULT CARD WITH GOLD BORDER & SHADOW */
+    /* GOLD METRIC BOXES */
+    .gold-metric {
+        border: 1px solid #D4AF37;
+        background-color: rgba(255, 255, 255, 0.02);
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .metric-label { color: #D4AF37; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; }
+    .metric-value { font-family: 'Playfair Display', serif; font-size: 2rem; color: #F0E68C; }
+
+    /* PERFUME CARD */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.2);
-        background: linear-gradient(145deg, #0f0f0f, #050505);
-        padding: 45px;
-        margin: 30px auto;
-        max-width: 850px;
+        background: rgba(15, 15, 15, 0.9);
+        padding: 40px;
+        margin: 20px auto;
+        max-width: 800px;
         text-align: center;
-        border-radius: 2px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 15px rgba(212, 175, 55, 0.03);
-        transition: 0.5s ease;
-        animation: fadeIn 1s ease-in-out;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .perfume-card:hover {
-        border-color: rgba(212, 175, 55, 0.6);
-        box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
-        transform: translateY(-8px);
-    }
-
-    .row-brand {
-        font-family: 'Lato', sans-serif;
-        font-size: 2rem; 
-        font-weight: 900;
-        letter-spacing: 8px;
-        color: #D4AF37;
-        margin-bottom: 12px;
-        text-transform: uppercase;
-    }
+    .row-brand { font-size: 1.8rem; font-weight: 900; letter-spacing: 5px; color: #D4AF37; margin-bottom: 5px; }
+    .row-name { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #fff; margin-bottom: 15px; }
     
-    .row-name {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.6rem;
-        color: #ffffff;
-        margin-bottom: 18px;
-        font-style: italic;
-        opacity: 0.95;
-    }
-
-    /* SIDEBAR LUXURY BOX */
-    .sidebar-ai-box {
-        border: 1px solid rgba(212, 175, 55, 0.5);
-        padding: 25px 15px;
-        background: rgba(212, 175, 55, 0.05);
-        text-align: center;
-        margin-top: 20px;
-        border-radius: 2px;
-    }
-
-    /* CUSTOM TABS STYLE */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 30px;
-        justify-content: center;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #777 !important;
-        font-size: 1rem;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #D4AF37 !important;
-        border-bottom-color: #D4AF37 !important;
-    }
+    .sidebar-box { border: 1px solid #D4AF37; padding: 20px; background: rgba(212, 175, 55, 0.05); text-align: center; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -121,23 +73,20 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Load dataset with automatic delimiter detection
         df = pd.read_csv('scentsational_data.csv', sep=None, encoding='latin1', engine='python')
         df.columns = df.columns.str.strip()
-        
-        # Standardize column names
         if 'Perfume' in df.columns: df = df.rename(columns={'Perfume': 'Name'})
         
+        # Proper Cleaning
         df['Name'] = df['Name'].fillna("Unknown").astype(str).str.title()
         df['Brand'] = df['Brand'].fillna("Unknown").astype(str).str.upper()
         df['Rating Value'] = pd.to_numeric(df['Rating Value'], errors='coerce').fillna(0)
         
-        # Create hidden field for smart note searching
+        # Accords handling
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
-        existing_accords = [c for c in accord_cols if c in df.columns]
-        df['All_Notes'] = df[existing_accords].apply(lambda x: ' '.join(x.dropna().astype(str)).lower(), axis=1)
-        
-        if 'mainaccord1' not in df.columns: df['mainaccord1'] = "Unknown"
+        existing = [c for c in accord_cols if c in df.columns]
+        df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
+        df['Search_Field'] = df['Name'] + " " + df['Brand'] + " " + df['Main Accords'].str.lower()
         
         return df
     except:
@@ -145,105 +94,77 @@ def load_data():
 
 def main():
     df = load_data()
-    if df is None:
-        st.error("Database connection failed. Please check scentsational_data.csv.")
-        return
+    if df is None: return
 
-    # --- SIDEBAR (AI CORE REDIRECT) ---
+    # SIDEBAR
     with st.sidebar:
-        st.markdown("<div class='sidebar-ai-box'>", unsafe_allow_html=True)
-        st.markdown("<p style='color:#D4AF37; font-size:0.75rem; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ELITE UPGRADE</p>", unsafe_allow_html=True)
-        st.write("Looking for a deeper connection? Try **ScentSational Heavy Core** to find fragrances based on chemical DNA and neural embeddings.")
-        st.markdown("""
-            <a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="
-                display: inline-block; width:100%; border: 1px solid #D4AF37; color: #000; background:#D4AF37; 
-                padding: 12px; text-decoration: none; font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; margin-top:15px;">
-               LAUNCH AI CORE
-            </a>
-        """, unsafe_allow_html=True)
+        st.markdown("<div class='sidebar-box'>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#D4AF37; font-size:0.7rem; letter-spacing:2px;'>ELITE UPGRADE</p>", unsafe_allow_html=True)
+        st.write("Unlock chemical DNA search with Heavy Core.")
+        st.link_button("LAUNCH AI CORE", "https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- HEADER ---
-    st.markdown("""
-        <div class="header-frame">
-            <h1>SCENTSATIONAL</h1>
-            <div style="text-align:center; color:#888; font-size:0.85rem; letter-spacing:5px; text-transform:uppercase; margin-top:10px;">
-                The Atelier &bull; Fragrance Intelligence Platform
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # HEADER
+    st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><p style="text-align:center; color:#888; letter-spacing:4px;">THE ATELIER</p></div>', unsafe_allow_html=True)
 
-    tab_insight, tab_explore = st.tabs(["MARKET ANALYSIS", "THE COLLECTION"])
+    # METRICS (BACK BY POPULAR DEMAND)
+    m1, m2, m3, m4 = st.columns(4)
+    m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
+    m2.markdown(f'<div class="gold-metric"><div class="metric-label">Brands</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
+    m3.markdown(f'<div class="gold-metric"><div class="metric-label">Top Note</div><div class="metric-value">{df["mainaccord1"].mode()[0].title()}</div></div>', unsafe_allow_html=True)
+    m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df["Rating Value"].replace(0, pd.NA).mean():.2f}</div></div>', unsafe_allow_html=True)
 
-    with tab_insight:
-        # THREE CHARTS LAYOUT (STATIC FOR MOBILE STABILITY)
+    tab_an, tab_cat = st.tabs(["MARKET ANALYSIS", "THE COLLECTION"])
+
+    with tab_an:
         c1, c2, c3 = st.columns(3)
-        
         with c1:
-            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>PRESTIGE HOUSES</p>", unsafe_allow_html=True)
-            top_b = df['Brand'].value_counts().head(8)
-            fig = go.Figure(go.Bar(x=top_b.values, y=top_b.index, orientation='h', marker_color='#D4AF37'))
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=350, 
-                              margin=dict(l=0,r=10,t=0,b=0), font=dict(color="#999"), yaxis=dict(autorange="reversed"))
+            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem;'>PRESTIGE HOUSES</p>", unsafe_allow_html=True)
+            top_b = df['Brand'].value_counts().head(10)
+            fig = px.bar(x=top_b.values, y=top_b.index, orientation='h', color_discrete_sequence=['#D4AF37'])
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed'}, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
 
         with c2:
-            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>CORE ACCORDS</p>", unsafe_allow_html=True)
-            top_a = df['mainaccord1'].value_counts().head(8)
-            fig2 = go.Figure(go.Bar(x=top_a.values, y=top_a.index, orientation='h', marker_color='#C5A059'))
-            fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=350, 
-                               margin=dict(l=0,r=10,t=0,b=0), font=dict(color="#999"), yaxis=dict(autorange="reversed"))
+            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem;'>CORE ACCORDS</p>", unsafe_allow_html=True)
+            top_a = df['mainaccord1'].value_counts().head(10)
+            fig2 = px.bar(x=top_a.values, y=top_a.index, orientation='h', color_discrete_sequence=['#C5A059'])
+            fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, yaxis={'autorange':'reversed'}, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig2, use_container_width=True, config={'staticPlot': True})
 
         with c3:
-            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>SCORE DISTRIBUTION</p>", unsafe_allow_html=True)
-            valid_scores = df[df['Rating Value'] > 0]['Rating Value']
-            fig3 = go.Figure(go.Histogram(x=valid_scores, marker_color='#D4AF37', nbinsx=15))
-            fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=350, 
-                               margin=dict(l=0,r=10,t=0,b=0), font=dict(color="#999"))
-            st.plotly_chart(fig3, use_container_width=True, config={'staticPlot': True})
+            st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.8rem;'>SCORE DISTRIBUTION</p>", unsafe_allow_html=True)
+            # FIXED: SCORE DISTRIBUTION AS PIE CHART
+            score_bins = pd.cut(df[df['Rating Value'] > 0]['Rating Value'], bins=[0, 3, 4, 5], labels=['Below 3', '3-4', '4-5'])
+            pie_df = score_bins.value_counts().reset_index()
+            fig3 = px.pie(pie_df, values='count', names='Rating Value', color_discrete_sequence=['#D4AF37', '#C5A059', '#856a35'])
+            fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=350, margin=dict(l=0,r=0,t=30,b=0))
+            st.plotly_chart(fig3, use_container_width=True)
 
-    with tab_explore:
-        # SMART SEARCH (NAME, BRAND, NOTES)
-        query = st.text_input("", placeholder="Search by brand, name or specific note (e.g. 'Tom Ford', 'Vanilla')...", label_visibility="collapsed")
+    with tab_cat:
+        # SMART SEARCH WITH AUTO-SUGGESTIONS
+        search_options = sorted(list(df['Name'].unique()) + list(df['Brand'].unique()))
+        selected = st.selectbox("Search archives...", options=search_options, index=None, placeholder="Search brand or name...")
         
-        # Centered Rating Filter
-        _, col_btn, _ = st.columns([1.5, 1, 1.5])
-        with col_btn:
-            top_filter = st.checkbox("Show Only Top Rated (4.5 ★+)")
+        col_f1, col_f2 = st.columns([1,1])
+        top_only = col_f1.checkbox("Show Only Top Rated (4.5+)")
+        note_search = st.text_input("Filter by specific notes (e.g. Vanilla, Oud)...")
 
-        if query:
-            q = query.lower()
-            filtered = df[
-                df['Brand'].str.lower().str.contains(q) | 
-                df['Name'].str.lower().str.contains(q) |
-                df['All_Notes'].str.contains(q)
-            ]
-        else:
-            filtered = df
+        filtered = df.copy()
+        if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
+        if top_only: filtered = filtered[filtered['Rating Value'] >= 4.5]
+        if note_search: filtered = filtered[filtered['Search_Field'].str.contains(note_search.lower())]
 
-        if top_filter:
-            filtered = filtered[filtered['Rating Value'] >= 4.5]
+        st.markdown(f"<p style='text-align:center; color:#555;'>{len(filtered)} PIECES IDENTIFIED</p>", unsafe_allow_html=True)
 
-        st.markdown(f"<p style='text-align:center; color:#666; letter-spacing:3px; margin-top:20px;'>{len(filtered)} ARTIFACTS IDENTIFIED</p>", unsafe_allow_html=True)
-
-        # GENERATING GOLDEN RESULT CARDS
-        for _, row in filtered.head(25).iterrows():
+        for _, row in filtered.head(20).iterrows():
             st.markdown(f"""
                 <div class="perfume-card">
                     <div class="row-brand">{row['Brand']}</div>
                     <div class="row-name">{row['Name']}</div>
-                    <div style="color:#D4AF37; font-size:1.1rem; margin-bottom:15px; font-weight:bold; letter-spacing:2px;">
-                        ★ {row['Rating Value']:.2f} / 5.0
-                    </div>
-                    <div style="color:#888; font-style:italic; font-family:'Playfair Display', serif; font-size:1.1rem; margin-bottom:35px; line-height:1.6;">
-                        {row.get('Main Accords', 'N/A')}
-                    </div>
-                    <a href="{row.get('url', '#')}" target="_blank" style="
-                        text-decoration:none; color:#000; background:#D4AF37; border:1px solid #D4AF37; 
-                        padding:12px 40px; font-size:0.75rem; font-weight:bold; letter-spacing:3px; text-transform:uppercase; transition:0.3s;">
-                        Consult Archives
-                    </a>
+                    <div style="color:#D4AF37; font-weight:bold;">★ {row['Rating Value']:.2f} / 5.0</div>
+                    <div style="color:#888; font-style:italic; margin: 15px 0;">{row['Main Accords']}</div>
+                    <a href="{row.get('url', '#')}" target="_blank" style="text-decoration:none; color:#000; background:#D4AF37; padding:10px 30px; font-size:0.8rem; font-weight:bold; letter-spacing:2px; display:inline-block;">EXPLORE ON FRAGRANTICA</a>
                 </div>
             """, unsafe_allow_html=True)
 
