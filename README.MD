@@ -50,11 +50,11 @@ This project utilizes a **Decoupled Architecture** strategy to optimize performa
 
 ## 🚀 Key Features
 
-* **📱 Mobile-First Design:** A fully responsive interface where layouts (columns, images, typography) adapt fluidly between Desktop and Mobile devices.
-* **🔍 Smart Discovery Engine:** Advanced filtering logic that allows users to search by Brand, Name, or Olfactory profile using fuzzy matching.
-* **📊 Market Intelligence:** Interactive dashboards powered by Plotly to visualize trends in the fragrance industry.
-* **🛡️ Robust Data Pipeline:** Custom CSV parsing engine capable of handling various delimiters and encoding standards automatically.
-
+* **Market Insights** – Interactive analytics featuring Top Designers, Olfactory Landscapes, and Score Distribution.
+* **The Collection** – Smart search with auto-suggestions for seamless discovery of 24,000+ scents.
+* **Quality Tier Selector** – One-click grouping into Masterpieces (4.5+), Premium (4.0-4.5), and Standard artifacts.
+* **Note Filtering** – Refine your search by specific ingredients like Vanilla, Oud, or Musk.
+* **Mobile Optimized** – A high-end experience tailored for both large screens and mobile devices.
 ---
 
 ## 📊 Analytics & Insights
