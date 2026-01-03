@@ -13,7 +13,7 @@ st.cache_data.clear()
 st.markdown("""
     <style>
     /* IMPORT FONTS */
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
     /* GLOBAL FONT ENFORCEMENT */
     html, body, [class*="css"], .stMarkdown, .stRadio, .stSelectbox, .stTextInput, .stMultiSelect, div, span, p {
@@ -28,7 +28,7 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* --- HEADER STYLING --- */
+    /* HEADER */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -63,43 +63,58 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- HIGH VISIBILITY FILTERS --- */
+    /* --- WIDGET STYLING --- */
     
-    /* Container for inputs */
-    .stSelectbox, .stMultiSelect { 
-        max-width: 100%; 
-    }
+    /* INPUTS (Search & Notes) */
+    .stSelectbox, .stMultiSelect { max-width: 100%; }
     
-    /* Make Input Boxes POP with a border and background */
+    /* Golden Borders for Inputs to pop against black */
     .stSelectbox div[data-baseweb="select"] > div,
     .stMultiSelect div[data-baseweb="select"] > div {
-        background-color: #0e0e0e !important;
-        border: 1px solid #D4AF37 !important; /* Gold Border */
-        border-radius: 4px !important;
-        color: #fff !important;
+        border: 1px solid rgba(212, 175, 55, 0.4) !important;
     }
-    
-    /* Hide default labels */
-    .stSelectbox label, .stMultiSelect label, .stRadio label {
+
+    /* Hide standard labels for search bars */
+    .stSelectbox label, .stMultiSelect label {
         display: none;
     }
 
-    /* Toggle Switch styling */
-    div[data-testid="stToggle"] {
-        justify-content: center;
-        margin-top: 10px;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        padding: 10px;
-        border-radius: 4px;
-        background: rgba(212, 175, 55, 0.05);
+    /* RADIO BUTTONS (TIER SELECTOR) - VISIBLE & CENTERED */
+    div[data-testid="stRadio"] {
+        background: transparent;
     }
-    div[data-testid="stToggle"] label {
-        display: block !important;
-        color: #D4AF37 !important;
-        font-weight: 600 !important;
+    div[data-testid="stRadio"] > div {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 30px; /* Space between radio options */
+    }
+    div[data-testid="stRadio"] label p {
+        font-size: 1rem !important; /* Bigger text */
+        color: #D4AF37 !important; /* Gold text */
     }
 
-    /* METRICS (Only for Market Insights now) */
+    /* TOGGLE SWITCH - HIGH VISIBILITY FIX */
+    div[data-testid="stToggle"] {
+        justify-content: center;
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 50px; /* Pill shape */
+        background: rgba(212, 175, 55, 0.05);
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    /* Target the Toggle Label specifically */
+    div[data-testid="stToggle"] label p {
+        font-size: 1rem !important;
+        font-weight: 700 !important; /* BOLD */
+        color: #D4AF37 !important; /* GOLD */
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    /* METRICS */
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.2);
         background-color: rgba(255, 255, 255, 0.01);
@@ -184,22 +199,21 @@ def main():
         st.markdown(f'<a href="https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Main Header (Visible everywhere)
+    # Header
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div class="sub-header">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
-    # TABS: Changed name to "DISCOVER SCENTS"
+    # TABS
     tab_an, tab_cat = st.tabs(["MARKET INSIGHTS", "DISCOVER SCENTS"])
 
-    # --- TAB 1: ANALYTICS (Metrics are here now) ---
+    # --- ANALYTICS TAB ---
     with tab_an:
-        # Metrics moved INSIDE this tab
         m1, m2, m3, m4 = st.columns([1,1,1,1])
         m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
         m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
         m3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{df["mainaccord1"].mode()[0].capitalize()}</div></div>', unsafe_allow_html=True)
         m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df[df["Rating Value"] > 0]["Rating Value"].mean():.2f}</div></div>', unsafe_allow_html=True)
         
-        st.write("") # Spacer
+        st.write("") 
 
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -221,13 +235,15 @@ def main():
             fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
             st.plotly_chart(fig3, use_container_width=True)
 
-    # --- TAB 2: DISCOVER SCENTS (No metrics, just search) ---
+    # --- TAB 2: DISCOVER (Filters Restored) ---
     with tab_cat:
         st.write("") 
 
-        # 1. Tier Selector
+        # 1. TIER SELECTOR (Restored & Visible)
+        # Using a custom label to make it clear what this is
+        st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 5px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
         tier_choice = st.radio(
-            "TIER_SELECTOR_HIDDEN", 
+            "TIER_SELECTOR_VISIBLE", 
             ["All Artifacts", "Masterpieces (4.5+)", "Premium (4.0+)", "Classics"],
             horizontal=True,
             label_visibility="collapsed"
@@ -235,7 +251,7 @@ def main():
         
         st.write("") 
         
-        # 2. High Visibility Search & Notes
+        # 2. SEARCH & NOTES
         col_s1, col_s2 = st.columns([1.5, 1])
         
         with col_s1:
@@ -255,15 +271,14 @@ def main():
                 label_visibility="collapsed"
             )
 
-        # 3. Strict Mode Toggle
-        tg_c1, tg_c2, tg_c3 = st.columns([2, 1, 2])
-        with tg_c2:
-            top_only = st.toggle("Strict Mode: Top Rated Only")
+        # 3. STRICT MODE TOGGLE (Bold & Gold)
+        top_only = st.toggle("Strict Mode (4.5+ Only)")
 
-        # Logic
+        # FILTER LOGIC
         filtered = df.copy()
         if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
         
+        # Dual Logic: Toggle OR Tier choice
         if top_only: 
             filtered = filtered[filtered['Rating Value'] >= 4.5]
         
