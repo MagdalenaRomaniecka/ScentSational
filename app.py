@@ -1,3 +1,5 @@
+import streamlit as st
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import re
@@ -13,7 +15,7 @@ st.set_page_config(
 st.cache_data.clear()
 
 # -----------------------------------------------------------------------------
-# 2. SHARED LUXURY CSS (MATCHING AI CORE)
+# 2. SHARED LUXURY CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -127,7 +129,7 @@ st.markdown("""
     .metric-label { color: #D4AF37 !important; font-size: 0.6rem !important; text-transform: uppercase; letter-spacing: 2px; font-weight: 600 !important; }
     .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.5rem, 3vw, 2rem) !important; color: #F0E68C !important; font-weight: 300; margin-top: 0px; }
 
-    /* --- UNIFIED CARD STYLING (MATCHING AI CORE) --- */
+    /* --- CARD STYLING --- */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.15);
         background: rgba(12, 12, 12, 0.9);
@@ -290,11 +292,10 @@ def load_data():
         
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
-        # Gender
+        # Gender & Year (Now needed for meta info)
         if 'Gender' not in df.columns: df['Gender'] = "Unisex"
         else: df['Gender'] = df['Gender'].fillna("Unisex")
         
-        # Year
         if 'Year' in df.columns:
             df['Year'] = pd.to_numeric(df['Year'], errors='coerce').fillna(0).astype(int)
             df['Year'] = df['Year'].apply(lambda x: str(x) if x > 1000 else "")
@@ -344,7 +345,6 @@ def main():
         m1, m2, m3, m4 = st.columns([1,1,1,1])
         m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
         m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
-        # Handle cases where accord might be missing
         trend_note = df["mainaccord1"].mode()[0].capitalize() if "mainaccord1" in df.columns else "N/A"
         m3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{trend_note}</div></div>', unsafe_allow_html=True)
         m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df[df["Rating Value"] > 0]["Rating Value"].mean():.2f}</div></div>', unsafe_allow_html=True)
@@ -452,7 +452,7 @@ def main():
             meta_info = f"{gender}"
             if year: meta_info += f" &bull; {year}"
 
-            # HTML Card (Matching AI Core Layout)
+            # HTML Card
             st.markdown(f"""
                 <div class="perfume-card">
                     <div class="brand-emblem">{initials}</div>
@@ -467,7 +467,7 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-    # --- 6. DISCREET FOOTER ---
+    # --- FOOTER ---
     st.markdown("""
     <div class="custom-footer">
         ScentSational Atelier v3.0 &bull; Developed by Magdalena Romaniecka &bull; 2026<br>
