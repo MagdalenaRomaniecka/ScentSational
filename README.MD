@@ -2,7 +2,7 @@
 
 # ✨ ScentSational | The Atelier
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -57,14 +57,14 @@ The "Score Distribution" reveals a discerning community. Only **18.2%** of fragr
 This project utilizes a **Decoupled Architecture** strategy to optimize performance. The system is split into two specialized units:
 
 ### 1. 🏛️ The Atelier (Lite Version)
-![Current Repo](https://img.shields.io/badge/📍_Current_Repository-000000?style=flat-square&color=black)
 * **Role:** Frontend, Analytics Dashboard, Rule-based Recommendation.
 * **Focus:** Speed, Mobile Responsiveness, Data Visualization.
 * **Hosting:** Streamlit Cloud.
+* **Live App:** [![Open App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/)
 
 ### 2. 🧠 The AI Core (Heavy Version)
 * **Role:** **NLP Engine & Vector Embeddings**.
-* **Concept:** Unlocking the **"Olfactory DNA"** of scent. Unlike simple filters, this core uses Neural Networks to understand semantic relationships between notes (e.g., mapping "rainy forest" to *Petrichor* and *Oakmoss*).
+* **Concept:** Unlocking the **"Olfactory DNA"** of scent using Neural Networks to understand semantic relationships (e.g., mapping "rainy forest" to *Petrichor*).
 * **Focus:** Deep Learning, Semantic similarity search.
 * **Hosting:** Hugging Face Spaces (GPU/LFS support).
 * **Live Model:** [![Hugging Face](https://img.shields.io/badge/🤗%20Launch%20AI%20Core-Hugging%20Face-orange)](https://baphomert-scentsational-fragrantica-lfs2.hf.space/)
