@@ -141,11 +141,7 @@ The application is powered by a curated dataset (`scentsational_data.csv`), rigo
 * **Preprocessing:** Raw data underwent regex standardization to ensure consistency in brand names and accords.
 
 ### 📜 License
-This project is released under the **MIT License**.
-> *Permission is hereby granted, free of charge, to any person obtaining a copy of this software...*
-
-You are free to use, modify, and distribute this software, provided that the copyright notice is preserved. See the [LICENSE](./) file for details.
-
+This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.
 ---
 
 <div align="center">
