@@ -3,26 +3,29 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import re
+from typing import Optional, List
 
 # -----------------------------------------------------------------------------
-# 1. UI CONFIGURATION
+# 1. APP CONFIGURATION & GLOBAL SETTINGS
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="ScentSational | Atelier", 
     page_icon="👑",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
+
+# Clear cache to ensure fresh data load on restart
 st.cache_data.clear()
 
 # -----------------------------------------------------------------------------
-# 2. SHARED LUXURY CSS
+# 2. UI & STYLE DEFINITIONS (CSS)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
-    /* IMPORT FONTS */
+    /* --- TYPOGRAPHY & FONTS --- */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
 
-    /* GLOBAL FONT ENFORCEMENT */
     html, body, [class*="css"], .stMarkdown, .stRadio, .stSelectbox, .stTextInput, .stMultiSelect, div, span, p {
         font-family: 'Montserrat', sans-serif !important;
         font-weight: 400 !important; 
@@ -30,12 +33,13 @@ st.markdown("""
         font-size: 0.9rem !important;
     }
 
+    /* --- MAIN CONTAINER BACKGROUND --- */
     .stApp {
         background-color: #050505;
         background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 100%);
     }
 
-    /* HEADER */
+    /* --- HEADERS --- */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-weight: 300 !important;
@@ -70,7 +74,7 @@ st.markdown("""
         text-align: center;
     }
 
-    /* --- WIDGET STYLING --- */
+    /* --- INPUT WIDGETS --- */
     .stSelectbox, .stMultiSelect { width: 100%; }
     
     .stSelectbox div[data-baseweb="select"] > div,
@@ -80,7 +84,7 @@ st.markdown("""
     }
     .stSelectbox label, .stMultiSelect label { display: none; }
 
-    /* RADIO BUTTONS */
+    /* Radio Button Styling */
     div[data-testid="stRadio"] {
         width: 100%;
         display: flex;
@@ -99,7 +103,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* TOGGLE */
+    /* Toggle Switch */
     div[data-testid="stToggle"] {
         justify-content: center;
         margin-top: 20px;
@@ -118,7 +122,7 @@ st.markdown("""
         letter-spacing: 1px;
     }
 
-    /* METRICS */
+    /* --- KPI METRICS --- */
     .gold-metric {
         border: 1px solid rgba(212, 175, 55, 0.2);
         background-color: rgba(255, 255, 255, 0.01);
@@ -129,7 +133,7 @@ st.markdown("""
     .metric-label { color: #D4AF37 !important; font-size: 0.6rem !important; text-transform: uppercase; letter-spacing: 2px; font-weight: 600 !important; }
     .metric-value { font-family: 'Cormorant Garamond', serif !important; font-size: clamp(1.5rem, 3vw, 2rem) !important; color: #F0E68C !important; font-weight: 300; margin-top: 0px; }
 
-    /* --- CARD STYLING --- */
+    /* --- PRODUCT CARDS --- */
     .perfume-card {
         border: 1px solid rgba(212, 175, 55, 0.15);
         background: rgba(12, 12, 12, 0.9);
@@ -142,7 +146,6 @@ st.markdown("""
         backdrop-filter: blur(10px);
     }
     
-    /* EMBLEM */
     .brand-emblem {
         width: 50px;
         height: 50px;
@@ -203,7 +206,7 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* GOLD BUTTON */
+    /* Call to Action Button */
     a.gold-btn {
         text-decoration: none; 
         color: #000 !important; 
@@ -223,7 +226,7 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
     }
     
-    /* FOOTER */
+    /* --- FOOTER --- */
     .custom-footer {
         text-align: center;
         color: #444;
@@ -238,7 +241,7 @@ st.markdown("""
     .custom-footer a { color: #555 !important; text-decoration: none; }
     .custom-footer a:hover { color: #777 !important; }
 
-    /* SIDEBAR & TABS */
+    /* --- SIDEBAR & NAVIGATION --- */
     [data-testid="stSidebar"] { background-color: #080808 !important; border-right: 1px solid rgba(212, 175, 55, 0.15); }
     .sidebar-gold-box { border: 1px solid #D4AF37; padding: 20px; background: rgba(212, 175, 55, 0.03); text-align: center; margin-bottom: 20px; }
 
@@ -249,10 +252,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 3. DATA & LOGIC
+# 3. HELPER FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_initials(text):
-    """Generates 2-letter initials for the emblem."""
+def get_initials(text: str) -> str:
+    """Generates 2-letter initials for the brand emblem."""
     if not text: return "SC"
     words = str(text).split()
     if not words: return "SC"
@@ -261,12 +264,17 @@ def get_initials(text):
     return (words[0][0] + words[-1][0]).upper()
 
 @st.cache_data
-def load_data():
+def load_data() -> Optional[pd.DataFrame]:
+    """
+    Loads and preprocesses the fragrance dataset.
+    Performs data cleaning, type conversion, and feature engineering.
+    """
     try:
+        # Load dataset with robust encoding handling
         df = pd.read_csv('scentsational_data.csv', sep=None, encoding='latin1', engine='python')
         df.columns = df.columns.str.strip()
         
-        # Mapping
+        # Column standardization and mapping
         cols = df.columns.tolist()
         brand_col = next((c for c in cols if 'brand' in c.lower()), 'Brand')
         name_col = next((c for c in cols if 'perfume' in c.lower() or 'name' in c.lower()), 'Name')
@@ -279,43 +287,52 @@ def load_data():
             rating_col: 'Rating Value', gender_col: 'Gender', year_col: 'Year'
         })
         
-        # Cleaning
+        # Data Cleaning: Strings
         df['Name'] = df['Name'].astype(str).str.strip()
         df['Brand'] = df['Brand'].astype(str).str.strip()
+        
+        # Remove cleaning artifacts (e.g., numeric prefixes)
         df['Name'] = df['Name'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Brand'] = df['Brand'].str.replace(r'^\d+\s*-\s*', '', regex=True)
         df['Name'] = df['Name'].str.replace(r'^0+\s+', '', regex=True)
-        df = df[~df['Name'].str.match(r'^\d+$')]
+        df = df[~df['Name'].str.match(r'^\d+$')] # Filter out numeric-only names
         
+        # Title Case formatting
         df['Name'] = df['Name'].str.replace('-', ' ').str.title()
         df['Brand'] = df['Brand'].str.replace('-', ' ').str.title()
         
+        # Numeric conversions
         df['Rating Value'] = pd.to_numeric(df['Rating Value'].astype(str).str.replace(',', '.'), errors='coerce').fillna(0)
         
-        # Gender & Year (Now needed for meta info)
-        if 'Gender' not in df.columns: df['Gender'] = "Unisex"
-        else: df['Gender'] = df['Gender'].fillna("Unisex")
+        # Meta Fields (Gender & Year)
+        if 'Gender' not in df.columns: 
+            df['Gender'] = "Unisex"
+        else: 
+            df['Gender'] = df['Gender'].fillna("Unisex")
         
         if 'Year' in df.columns:
             df['Year'] = pd.to_numeric(df['Year'], errors='coerce').fillna(0).astype(int)
+            # Filter valid years only
             df['Year'] = df['Year'].apply(lambda x: str(x) if x > 1000 else "")
         else:
             df['Year'] = ""
 
-        # Accords
+        # Accord Aggregation for Search
         accord_cols = ['mainaccord1', 'mainaccord2', 'mainaccord3', 'mainaccord4', 'mainaccord5']
-        existing = [c for c in accord_cols if c in df.columns]
-        df['Main Accords'] = df[existing].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
+        existing_accords = [c for c in accord_cols if c in df.columns]
+        df['Main Accords'] = df[existing_accords].apply(lambda x: ', '.join(x.dropna().astype(str)), axis=1)
         
+        # Create Search Index for fuzzy filtering
         df['Search_Index'] = df['Name'].str.lower() + " " + df['Brand'].str.lower() + " " + df['Main Accords'].str.lower()
         df = df.sort_values(by=['Brand', 'Name'])
         
         return df
     except Exception as e:
-        st.error(f"Data Error: {e}")
+        st.error(f"Critical Data Error: {e}")
         return None
 
-def get_all_notes(df):
+def get_all_notes(df: pd.DataFrame) -> List[str]:
+    """Extracts a unique list of all olfactory notes from the dataset."""
     notes_set = set()
     if 'Main Accords' in df.columns:
         for accords in df['Main Accords'].dropna():
@@ -324,11 +341,16 @@ def get_all_notes(df):
                 if p: notes_set.add(p.capitalize())
     return sorted(list(notes_set))
 
+# -----------------------------------------------------------------------------
+# 4. MAIN APPLICATION LOGIC
+# -----------------------------------------------------------------------------
 def main():
+    # Initialize Data
     df = load_data()
     if df is None: return
     all_notes_list = get_all_notes(df)
 
+    # --- Sidebar Configuration ---
     with st.sidebar:
         st.markdown('<div class="sidebar-gold-box">', unsafe_allow_html=True)
         st.markdown("<p style='color:#D4AF37; font-size:0.8rem; font-weight:bold; letter-spacing:2px;'>AI ENGINE</p>", unsafe_allow_html=True)
@@ -336,48 +358,64 @@ def main():
         st.markdown(f'<a href="https://baphomert-scentsational-fragrantica-lfs2.hf.space" target="_blank" style="display:inline-block; background:#D4AF37; color:black; padding:12px 25px; text-decoration:none; font-weight:bold; font-size:0.7rem; letter-spacing:2px; margin-top:10px;">LAUNCH AI CORE</a>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # --- Header Section ---
     st.markdown('<div class="header-frame"><h1>SCENTSATIONAL</h1><div class="sub-header">The Atelier &bull; Intelligence Platform</div></div>', unsafe_allow_html=True)
 
-    # TABS
-    tab_an, tab_cat = st.tabs(["MARKET INSIGHTS", "DISCOVER SCENTS"])
+    # --- Tab Layout ---
+    tab_analytics, tab_catalog = st.tabs(["MARKET INSIGHTS", "DISCOVER SCENTS"])
 
-    with tab_an:
-        m1, m2, m3, m4 = st.columns([1,1,1,1])
-        m1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
-        m2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
+    # -------------------------------------------------------------------------
+    # TAB 1: ANALYTICS DASHBOARD
+    # -------------------------------------------------------------------------
+    with tab_analytics:
+        # Key Performance Indicators (KPIs)
+        col_kpi_1, col_kpi_2, col_kpi_3, col_kpi_4 = st.columns([1,1,1,1])
+        
+        col_kpi_1.markdown(f'<div class="gold-metric"><div class="metric-label">Collection Size</div><div class="metric-value">{len(df):,}</div></div>', unsafe_allow_html=True)
+        col_kpi_2.markdown(f'<div class="gold-metric"><div class="metric-label">Designers</div><div class="metric-value">{df["Brand"].nunique()}</div></div>', unsafe_allow_html=True)
+        
         trend_note = df["mainaccord1"].mode()[0].capitalize() if "mainaccord1" in df.columns else "N/A"
-        m3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{trend_note}</div></div>', unsafe_allow_html=True)
-        m4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{df[df["Rating Value"] > 0]["Rating Value"].mean():.2f}</div></div>', unsafe_allow_html=True)
+        col_kpi_3.markdown(f'<div class="gold-metric"><div class="metric-label">Trending Note</div><div class="metric-value">{trend_note}</div></div>', unsafe_allow_html=True)
+        
+        avg_rating = df[df["Rating Value"] > 0]["Rating Value"].mean()
+        col_kpi_4.markdown(f'<div class="gold-metric"><div class="metric-label">Avg Rating</div><div class="metric-value">{avg_rating:.2f}</div></div>', unsafe_allow_html=True)
         
         st.write("") 
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
+        # Visualizations
+        col_chart_1, col_chart_2, col_chart_3 = st.columns(3)
+        
+        with col_chart_1:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.75rem; letter-spacing:2px; font-weight:bold;'>TOP DESIGNERS</p>", unsafe_allow_html=True)
-            top_b = df['Brand'].value_counts().head(10)
-            fig = px.bar(x=top_b.values, y=top_b.index, orientation='h', color_discrete_sequence=['#D4AF37'])
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
-            st.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
-        with c2:
+            top_brands = df['Brand'].value_counts().head(10)
+            fig_brands = px.bar(x=top_brands.values, y=top_brands.index, orientation='h', color_discrete_sequence=['#D4AF37'])
+            fig_brands.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
+            st.plotly_chart(fig_brands, use_container_width=True, config={'staticPlot': True})
+            
+        with col_chart_2:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.75rem; letter-spacing:2px; font-weight:bold;'>OLFACTORY LANDSCAPE</p>", unsafe_allow_html=True)
             if "mainaccord1" in df.columns:
-                top_a = df['mainaccord1'].value_counts().head(10)
-                fig2 = px.bar(x=top_a.values, y=top_a.index, orientation='h', color_discrete_sequence=['#C5A059'])
-                fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
-                st.plotly_chart(fig2, use_container_width=True, config={'staticPlot': True})
-        with c3:
+                top_accords = df['mainaccord1'].value_counts().head(10)
+                fig_accords = px.bar(x=top_accords.values, y=top_accords.index, orientation='h', color_discrete_sequence=['#C5A059'])
+                fig_accords.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, yaxis={'autorange':'reversed', 'title': ''}, xaxis={'title': ''}, margin=dict(l=0,r=0,t=0,b=0))
+                st.plotly_chart(fig_accords, use_container_width=True, config={'staticPlot': True})
+                
+        with col_chart_3:
             st.markdown("<p style='color:#D4AF37; text-align:center; font-size:0.75rem; letter-spacing:2px; font-weight:bold;'>SCORE DISTRIBUTION</p>", unsafe_allow_html=True)
+            # Binning ratings for analysis
             score_data = pd.cut(df[df['Rating Value'] > 0]['Rating Value'], bins=[0, 3.5, 4.2, 5], labels=['Standard', 'Premium', 'Masterpiece'])
-            fig3 = px.pie(score_data.value_counts().reset_index(), values='count', names='Rating Value', hole=0.6, color_discrete_sequence=['#2C2C2C', '#96792e', '#F0E68C'])
-            fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
-            st.plotly_chart(fig3, use_container_width=True)
+            fig_pie = px.pie(score_data.value_counts().reset_index(), values='count', names='Rating Value', hole=0.6, color_discrete_sequence=['#2C2C2C', '#96792e', '#F0E68C'])
+            fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color="#888", height=300, margin=dict(l=0,r=0,t=20,b=0), showlegend=True)
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-    # --- TAB 2: DISCOVER ---
-    with tab_cat:
+    # -------------------------------------------------------------------------
+    # TAB 2: DISCOVERY ENGINE
+    # -------------------------------------------------------------------------
+    with tab_catalog:
         st.write("") 
-        fill_left, center_stage, fill_right = st.columns([1, 4, 1])
+        col_spacer_l, col_center, col_spacer_r = st.columns([1, 4, 1])
 
-        with center_stage:
+        with col_center:
             # 1. Tier Selector
             st.markdown("<p style='text-align:center; color:#666; font-size:0.7rem; letter-spacing:2px; margin-bottom: 5px; text-transform:uppercase;'>Select Quality Grade</p>", unsafe_allow_html=True)
             tier_choice = st.radio(
@@ -389,11 +427,11 @@ def main():
             
             st.write("") 
             
-            # 2. Search & Notes
-            col_s1, col_s2 = st.columns([1.5, 1], gap="medium")
+            # 2. Search & Filter Bar
+            col_search, col_filter = st.columns([1.5, 1], gap="medium")
             
-            with col_s1:
-                selected = st.selectbox(
+            with col_search:
+                search_query = st.selectbox(
                     "SEARCH_HIDDEN",
                     options=sorted(list(df['Name'].unique()) + list(df['Brand'].unique())),
                     index=None,
@@ -401,7 +439,7 @@ def main():
                     label_visibility="collapsed"
                 )
                 
-            with col_s2:
+            with col_filter:
                 selected_notes = st.multiselect(
                     "NOTES_HIDDEN",
                     options=all_notes_list,
@@ -409,50 +447,60 @@ def main():
                     label_visibility="collapsed"
                 )
 
-            # 3. Strict Mode
-            top_only = st.toggle("Strict Mode (4.5+ Only)")
+            # 3. Advanced Toggle
+            strict_mode = st.toggle("Strict Mode (4.5+ Only)")
 
-        # Logic
-        filtered = df.copy()
-        if selected: filtered = filtered[(filtered['Name'] == selected) | (filtered['Brand'] == selected)]
+        # --- Filtering Logic ---
+        filtered_df = df.copy()
         
-        if top_only: 
-            filtered = filtered[filtered['Rating Value'] >= 4.5]
+        # Apply Search
+        if search_query: 
+            filtered_df = filtered_df[(filtered_df['Name'] == search_query) | (filtered_df['Brand'] == search_query)]
         
-        if tier_choice == "Masterpieces (4.5+)": filtered = filtered[filtered['Rating Value'] >= 4.5]
-        elif tier_choice == "Premium (4.0+)": filtered = filtered[(filtered['Rating Value'] >= 4.0) & (filtered['Rating Value'] < 4.5)]
-        elif tier_choice == "Classics": filtered = filtered[(filtered['Rating Value'] > 0) & (filtered['Rating Value'] < 4.0)]
+        # Apply Strict Mode
+        if strict_mode: 
+            filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
         
+        # Apply Tier Logic
+        if tier_choice == "Masterpieces (4.5+)": 
+            filtered_df = filtered_df[filtered_df['Rating Value'] >= 4.5]
+        elif tier_choice == "Premium (4.0+)": 
+            filtered_df = filtered_df[(filtered_df['Rating Value'] >= 4.0) & (filtered_df['Rating Value'] < 4.5)]
+        elif tier_choice == "Classics": 
+            filtered_df = filtered_df[(filtered_df['Rating Value'] > 0) & (filtered_df['Rating Value'] < 4.0)]
+        
+        # Apply Note Filtering
         if selected_notes:
             for note in selected_notes:
-                filtered = filtered[filtered['Search_Index'].str.contains(note.lower())]
+                filtered_df = filtered_df[filtered_df['Search_Index'].str.contains(note.lower())]
 
+        # Results Counter
         st.markdown(f"""
             <div style='text-align:center; margin-top:30px; margin-bottom:20px; border-top:1px solid #333; padding-top:20px;'>
                 <span style='color:#666; font-size:0.8rem; letter-spacing:2px; text-transform:uppercase;'>
-                    {len(filtered)} Olfactory Signatures Found
+                    {len(filtered_df)} Olfactory Signatures Found
                 </span>
             </div>
         """, unsafe_allow_html=True)
 
-        for _, row in filtered.head(20).iterrows():
-            # Prepare Data for Card
+        # --- Render Cards ---
+        for _, row in filtered_df.head(20).iterrows():
+            # Extract Attributes
             brand = str(row['Brand']).replace('"', '').replace("'", "")
             name = str(row['Name']).replace('"', '').replace("'", "")
             rating = float(row['Rating Value'])
             notes = str(row['Main Accords'])
             link = row.get('url', '#')
             
-            # Emblem Initials
             initials = get_initials(brand)
             
-            # Meta (Gender • Year)
+            # Formatting Metadata
             gender = str(row.get('Gender', 'Unisex')).capitalize()
             year = str(row.get('Year', ''))
             meta_info = f"{gender}"
             if year: meta_info += f" &bull; {year}"
 
-            # HTML Card
+            # Display HTML Card
             st.markdown(f"""
                 <div class="perfume-card">
                     <div class="brand-emblem">{initials}</div>
@@ -467,7 +515,7 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-    # --- FOOTER ---
+    # --- Footer ---
     st.markdown("""
     <div class="custom-footer">
         ScentSational Atelier v3.0 &bull; Developed by Magdalena Romaniecka &bull; 2026<br>
