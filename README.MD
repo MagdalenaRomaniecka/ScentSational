@@ -22,8 +22,32 @@
 
 The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering **intuitive discovery modes** in a mobile-responsive environment.
 
+---
+
+## 📊 Analytics & Insights
+
+The application provides a deep dive into the fragrance market through three key visualizations, styled in the platform's signature aesthetic.
+
+### 1. The Olfactory Landscape
+We mapped the frequency of primary accords across the database. The market is currently dominated by **Citrus, Woody, and Fruity** profiles.
 <div align="center">
-  <img src="assets/olfactory_landscape.png" width="500" alt="App Screenshot" style="border-radius: 10px; margin-top: 20px;">
+  <img src="assets/olfactory_landscape.png" width="500" alt="Olfactory Landscape" style="border-radius: 5px;">
+</div>
+
+<br>
+
+### 2. Top Designer Analysis
+We analyzed market presence by brand volume, highlighting a mix of high-volume commercial giants alongside heritage luxury houses.
+<div align="center">
+  <img src="assets/top_designers.png" width="500" alt="Top Designers" style="border-radius: 5px;">
+</div>
+
+<br>
+
+### 3. Quality Distribution
+The "Score Distribution" reveals a discerning community. Only **18.2%** of fragrances achieve the "Masterpiece" status (4.5+ rating).
+<div align="center">
+  <img src="assets/score_distribution.png" width="500" alt="Score Distribution" style="border-radius: 5px;">
 </div>
 
 ---
@@ -51,7 +75,6 @@ This project utilizes a **Decoupled Architecture** strategy to optimize performa
 
 ## 🚀 Key Features
 
-* **📊 Market Insights:** Interactive analytics featuring Top Designers and Score Distribution in a high-contrast gold theme.
 * **🔍 Discover Scents:** A streamlined search engine allowing exploration of over 24,000 fragrances.
 * **🎚️ Smart Filtering:** Horizontal Quality Tier selector and intelligent autocomplete for olfactory notes.
 * **⚡ Strict Mode:** A dedicated toggle to instantly filter for the "Crème de la Crème" (Rating 4.5+).
