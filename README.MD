@@ -2,23 +2,28 @@
 
 # ✨ ScentSational | The Atelier
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+<br><br>
+
+*"Scent is the brother of breath."*
+<br>— **Yves Saint Laurent**
+
 <br>
 
-> *"Scent is the brother of breath."*
-> <br>— **Yves Saint Laurent**
+<a href="https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/">
+  <img src="https://img.shields.io/badge/🚀_Launch_App-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white&labelColor=101010" height="45" alt="Launch App">
+</a>
 
-<br>
+<br><br>
 
 </div>
 
 ## 💎 Project Overview
 
-**ScentSational** is not just a database; it is a digital concierge designed for the modern connoisseur. Prioritizing **minimal elegance over complexity**, this project implements a "Dark Luxury" design system to provide a high-end user experience.
+**ScentSational** is not just a database, it is a digital concierge designed for the modern connoisseur. Prioritizing **minimal elegance over complexity**, this project implements a "Dark Luxury" design system to provide a high-end user experience.
 
 The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering **intuitive discovery modes** in a mobile-responsive environment.
 
@@ -60,14 +65,13 @@ This project utilizes a **Decoupled Architecture** strategy to optimize performa
 * **Role:** Frontend, Analytics Dashboard, Rule-based Recommendation.
 * **Focus:** Speed, Mobile Responsiveness, Data Visualization.
 * **Hosting:** Streamlit Cloud.
-* **Live App:** [![Open App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/)
 
 ### 2. 🧠 The AI Core (Heavy Version)
 * **Role:** **NLP Engine & Vector Embeddings**.
 * **Concept:** Unlocking the **"Olfactory DNA"** of scent using Neural Networks to understand semantic relationships (e.g., mapping "rainy forest" to *Petrichor*).
 * **Focus:** Deep Learning, Semantic similarity search.
 * **Hosting:** Hugging Face Spaces (GPU/LFS support).
-* **Live Model:** [![Hugging Face](https://img.shields.io/badge/🤗%20Launch%20AI%20Core-Hugging%20Face-orange)](https://baphomert-scentsational-fragrantica-lfs2.hf.space/)
+* **Live Model:** [![Hugging Face](https://img.shields.io/badge/🤗_Launch_AI_Core-FFD21E?style=flat&logo=huggingface&logoColor=black)](https://baphomert-scentsational-fragrantica-lfs2.hf.space/)
 
 > **Note:** This repository links to the AI Core via the application interface, ensuring a lightweight frontend experience while offloading heavy computational tasks.
 
