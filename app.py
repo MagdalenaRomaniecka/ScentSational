@@ -1,3 +1,6 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import re
@@ -261,6 +264,7 @@ def get_initials(text):
 @st.cache_data
 def load_data():
     try:
+        # LOADING THE SPECIFIC FILE FOR ATELIER
         df = pd.read_csv('scentsational_data.csv', sep=None, encoding='latin1', engine='python')
         df.columns = df.columns.str.strip()
         
