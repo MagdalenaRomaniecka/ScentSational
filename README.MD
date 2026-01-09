@@ -1,104 +1,58 @@
+# ✨ ScentSational | The Atelier
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational.streamlit.app)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+> *"Scent is the brother of breath."*
+> <br>— **Yves Saint Laurent**
+
+## 💎 Project Overview
+
+**ScentSational** is not just a database; it is a digital concierge designed for the modern connoisseur. Prioritizing **minimal elegance over complexity**, this project implements a "Dark Luxury" design system to provide a high-end user experience.
+
+The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering **intuitive discovery modes** in a mobile-responsive environment.
+
 <div align="center">
-
-# ✨ ScentSational | Atelier
-### The Dark Luxury Fragrance Intelligence Platform
-
-![Python](https://img.shields.io/badge/Python-3.9%2B-FFD700?style=for-the-badge&logo=python&logoColor=black)
-![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
-![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
-<p align="center">
-  <br>
-  <i>"Scent is the brother of breath."</i>
-  <br>
-</p>
-<a href="https://scentsational-zbznjhgc4xv7faddappdc2b.streamlit.app/" target="_blank">
-  <img src="https://img.shields.io/badge/🚀_LAUNCH_LIVE_APP-000000?style=for-the-badge&logo=streamlit&logoColor=FF4B4B&border=D4AF37" alt="Launch App" height="45">
-</a>
+  <img src="assets/olfactory_landscape.png" width="700" alt="App Screenshot">
 </div>
 
 ---
 
-## 💎 Project Overview
-
-**ScentSational** is not just a database, it is a digital concierge designed for the modern connoisseur. Moving away from cluttered interfaces, this project implements a **"Dark Luxury" design system** to provide a seamless, high-end user experience for discovering fragrances.
-
-The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering curated discovery modes in a mobile-responsive environment.
-
----
 ## 🏗️ Architecture & Ecosystem
 
-This project utilizes a **Decoupled Architecture** strategy to optimize performance and resource management. The system is split into two distinct repositories:
+This project utilizes a **Decoupled Architecture** strategy to optimize performance. The system is split into two specialized units:
 
-### 1. The Atelier (Lite Version) - *Current Repository*
+### 1. 🏛️ The Atelier (Lite Version)
+![Current Repo](https://img.shields.io/badge/📍_Current_Repository-000000?style=flat-square&color=black)
 * **Role:** Frontend, Analytics Dashboard, Rule-based Recommendation.
 * **Focus:** Speed, Mobile Responsiveness, Data Visualization.
 * **Hosting:** Streamlit Cloud.
-* **Data:** Lightweight CSV datasets.
 
-### 2. The AI Core (Heavy Version)
-* **Role:** Deep Learning Engine, Neural Network Embeddings.
-* **Focus:** Chemical similarity search, Advanced NLP.
+### 2. 🧠 The AI Core (Heavy Version)
+* **Role:** **NLP Engine & Vector Embeddings**.
+* **Concept:** Unlocking the **"Olfactory DNA"** of scent. Unlike simple filters, this core uses Neural Networks to understand semantic relationships between notes (e.g., mapping "rainy forest" to *Petrichor* and *Oakmoss*).
+* **Focus:** Deep Learning, Semantic similarity search.
 * **Hosting:** Hugging Face Spaces (GPU/LFS support).
-* **Repository:** [📂 ScentSational-Fragrantica-LFS](https://github.com/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS)
-* **Live AI Model:** [🤗 Launch AI Core on Hugging Face](https://huggingface.co/spaces/MagdalenaRomaniecka/ScentSational-Fragrantica-LFS)
+* **Live Model:** [![Hugging Face](https://img.shields.io/badge/🤗%20Launch%20AI%20Core-Hugging%20Face-orange)](https://baphomert-scentsational-fragrantica-lfs2.hf.space/)
 
-> *Note: This repository (Lite) links to the AI Core via the application interface, keeping the user experience seamless while managing heavy computational loads externally.*
+> **Note:** This repository links to the AI Core via the application interface, ensuring a lightweight frontend experience while offloading heavy computational tasks.
 
 ---
 
 ## 🚀 Key Features
 
-* **Market Insights** – Interactive analytics featuring Top Designers, Olfactory Landscapes, and Score Distribution in a high-contrast gold theme.
-* **Discover Scents** – A streamlined search engine allowing you to explore over 24,000 fragrances.
-* **Smart Filtering** – Horizontal Quality Tier selector and intelligent autocomplete for olfactory notes (e.g., Oud, Vetiver).
-* **Strict Mode** – A dedicated toggle to instantly filter for the "Crème de la Crème" (Rating 4.5+).
-* **Mobile Optimized** – A "Compact Minimalism" UI tailored for seamless use on smartphones.
+* **📊 Market Insights:** Interactive analytics featuring Top Designers and Score Distribution in a high-contrast gold theme.
+* **🔍 Discover Scents:** A streamlined search engine allowing exploration of over 24,000 fragrances.
+* **🎚️ Smart Filtering:** Horizontal Quality Tier selector and intelligent autocomplete for olfactory notes.
+* **⚡ Strict Mode:** A dedicated toggle to instantly filter for the "Crème de la Crème" (Rating 4.5+).
+
 ---
-
-## 📊 Analytics & Insights
-
-The application provides a deep dive into the fragrance market through three key visualizations, styled in the platform's signature "Dark Luxury" aesthetic.
-
-### 1. The Olfactory Landscape
-We mapped the frequency of primary accords across the database. As shown below, the market is currently dominated by **Citrus, Woody, and Fruity** profiles, indicating a consumer preference for fresh and grounded scents.
-
-<div align="center">
-  <img src="assets/olfactory_landscape.png" alt="Olfactory Landscape Chart" width="800">
-  <p><i>Figure 1: Distribution of dominant olfactory accords.</i></p>
-</div>
-
-### 2. Top Designer Analysis
-We analyzed market presence by brand volume. The dataset highlights a mix of high-volume commercial giants (Avon, Zara) alongside heritage luxury houses, showcasing the diverse range of the collection.
-
-<div align="center">
-  <img src="assets/top_designers.png" alt="Top Designers Chart" width="800">
-  <p><i>Figure 2: Top 10 designers by number of fragrances.</i></p>
-</div>
-
-### 3. Quality Distribution
-The "Score Distribution" reveals a discerning community. Only **18.2%** of fragrances achieve the "Masterpiece" status (4.5+ rating), while the majority fall into the "Standard" category, highlighting the exclusivity of top-tier scents.
-
-<div align="center">
-  <img src="assets/score_distribution.png" alt="Score Distribution Chart" width="800">
-  <p><i>Figure 3: Breakdown of fragrances by rating tiers (Standard, Premium, Masterpiece).</i></p>
-</div>
----
-
-## 🛠️ Technology Stack
-
-| Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Core Logic** | `Python 3.9+` | Backend processing and logic control. |
-| **Frontend** | `Streamlit` | Web framework with custom CSS injection for "Dark Mode". |
-| **Data Eng** | `Pandas` | Data cleaning, regex standardization, and manipulation. |
-| **Viz** | `Plotly` | Interactive charts without static modebars. |
-| **Deployment** | `Streamlit Cloud` | CI/CD pipeline integrated with GitHub. |
 
 ## 💻 Installation & Local Usage
 
-To run this application locally on your machine:
+To run this application locally:
 
 1.  **Clone the repository**
     ```bash
@@ -118,33 +72,19 @@ To run this application locally on your machine:
 
 ---
 
-## 📂 Project Structure
-
-    ScentSational/
-    ├── assets/                  # Static assets (Charts, Images)
-    │   └── olfactory_landscape.png
-    ├── app.py                   # Main Application (Atelier Dashboard)
-    ├── scentsational_data.csv   # Processed Dataset (Source of Truth)
-    ├── requirements.txt         # Dependency Management
-    └── README.md                # Documentation
-
-<br>
-
----
-
 ## ⚖️ Data Source & Licensing
 
-### 📚 Data Origin
-The application is powered by a curated dataset (`scentsational_data.csv`), rigorously processed for this portfolio.
-* **Source:** [Fragrantica Fragrance Dataset (Kaggle)](https://www.kaggle.com/datasets/olgagmiufana1/fragrantica-com-fragrance-dataset)
-* **Aggregated Sources:** Consolidated olfactory notes, popularity ratings, and visual assets from public fragrance databases.
-* **Preprocessing:** Raw data underwent regex standardization to ensure consistency in brand names and accords.
+**Data Origin**
+The application is powered by a curated dataset (`scentsational_data.csv`), **meticulously standardized** for this portfolio.
 
-### 📜 License
+* **Source:** Fragrantica Fragrance Dataset by [Olga G. (Kaggle)](https://www.kaggle.com/datasets/olgagmiufana1/fragrantica-com-fragrance-dataset).
+* **Dataset Type:** Static dataset (2024 version). Used for analytical demonstration purposes.
+* **Preprocessing:** Raw data underwent regex cleaning to ensure consistency in brand names and accords.
+
+**License**
 This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.
----
 
-<div align="center">
+---
 
 ## 👩‍💻 Author
 
@@ -154,7 +94,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE)
 <br>
 *Data Analyst & Web Analytics Enthusiast*
 
-&copy; 2026 | Built with 🖤 and Python.
+&copy; 2026 | Built with 💚 and Python.
 
 <br>
 
