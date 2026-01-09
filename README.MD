@@ -96,6 +96,26 @@ The "Score Distribution" reveals a discerning community. Only **18.2%** of fragr
 | **Viz** | `Plotly` | Interactive charts without static modebars. |
 | **Deployment** | `Streamlit Cloud` | CI/CD pipeline integrated with GitHub. |
 
+## 💻 Installation & Local Usage
+
+To run this application locally on your machine:
+
+1.  **Clone the repository**
+    ```bash
+    git clone [https://github.com/MagdalenaRomaniecka/ScentSational.git](https://github.com/MagdalenaRomaniecka/ScentSational.git)
+    cd ScentSational
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Run the application**
+    ```bash
+    streamlit run app.py
+    ```
+
 ---
 
 ## 📂 Project Structure
@@ -132,11 +152,13 @@ You are free to use, modify, and distribute this software, provided that the cop
 
 ## 👩‍💻 Author
 
----
-
 <div align="center">
 
-Created by **Magdalena Romaniecka** *Data Analyst & Web Analytics Enthusiast* © 2025
+**Magdalena Romaniecka**
+<br>
+*Data Analyst & Web Analytics Enthusiast*
+
+&copy; 2026 | Built with 🖤 and Python.
 
 <br>
 
