@@ -1,3 +1,5 @@
+<div align="center">
+
 # ✨ ScentSational | The Atelier
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scentsational.streamlit.app)
@@ -5,8 +7,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+<br>
+
 > *"Scent is the brother of breath."*
 > <br>— **Yves Saint Laurent**
+
+<br>
+
+</div>
 
 ## 💎 Project Overview
 
@@ -15,7 +23,7 @@
 The platform solves the "paradox of choice" in the perfume market by aggregating data, standardizing olfactory notes, and offering **intuitive discovery modes** in a mobile-responsive environment.
 
 <div align="center">
-  <img src="assets/olfactory_landscape.png" width="700" alt="App Screenshot">
+  <img src="assets/olfactory_landscape.png" width="500" alt="App Screenshot" style="border-radius: 10px; margin-top: 20px;">
 </div>
 
 ---
